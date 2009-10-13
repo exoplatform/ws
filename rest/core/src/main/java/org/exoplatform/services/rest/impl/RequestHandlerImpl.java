@@ -18,23 +18,6 @@
  */
 package org.exoplatform.services.rest.impl;
 
-import java.io.File;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
-import javax.ws.rs.ext.ExceptionMapper;
-
-import org.exoplatform.container.component.ComponentPlugin;
-import org.exoplatform.container.xml.InitParams;
-import org.exoplatform.container.xml.ValueParam;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.rest.ApplicationContext;
@@ -44,18 +27,27 @@ import org.exoplatform.services.rest.GenericContainerResponse;
 import org.exoplatform.services.rest.ObjectFactory;
 import org.exoplatform.services.rest.RequestFilter;
 import org.exoplatform.services.rest.RequestHandler;
+import org.exoplatform.services.rest.ResourceBinder;
 import org.exoplatform.services.rest.ResponseFilter;
-import org.exoplatform.services.rest.impl.method.MethodInvokerFilterComponentPlugin;
-import org.exoplatform.services.rest.impl.provider.EntityProviderComponentPlugin;
-import org.exoplatform.services.rest.method.MethodInvokerFilter;
-import org.exoplatform.services.rest.provider.EntityProvider;
 import org.picocontainer.Startable;
+
+import java.io.File;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
+import javax.ws.rs.ext.ExceptionMapper;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
  * @version $Id: $
  */
-public final class RequestHandlerImpl implements RequestHandler, Startable
+public final class RequestHandlerImpl implements RequestHandler
 {
 
    /**
@@ -86,27 +78,22 @@ public final class RequestHandlerImpl implements RequestHandler, Startable
       properties.put(name, value);
    }
 
+   private final ResourceBinder binder;
+   
    /**
     * Constructs new instance of {@link RequestHandler}.
-    * 
-    * @param dispatcher See {@link RequestDispatcher}
-    * @param params init parameters
     */
-   public RequestHandlerImpl(RequestDispatcher dispatcher, InitParams params)
+   public RequestHandlerImpl()
    {
-      if (params != null)
-      {
-         for (Iterator<ValueParam> i = params.getValueParamIterator(); i.hasNext();)
-         {
-            ValueParam vp = i.next();
-            properties.put(vp.getName(), vp.getValue());
-         }
-      }
-
-      this.dispatcher = dispatcher;
-
+      this.binder = new BaseResourceBinder();
+      this.dispatcher = new RequestDispatcher(binder);
    }
-
+   
+   public ResourceBinder getBinder()
+   {
+      return binder;
+   }
+   
    // RequestHandler
 
    /**
@@ -271,25 +258,6 @@ public final class RequestHandlerImpl implements RequestHandler, Startable
 
    }
 
-   // Startable
-
-   /**
-    * {@inheritDoc}
-    */
-   public void start()
-   {
-      init();
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public void stop()
-   {
-   }
-
-   //
-
    /**
     * Startup initialization.
     */
@@ -325,46 +293,6 @@ public final class RequestHandlerImpl implements RequestHandler, Startable
          }
       });
 
-   }
-
-   /**
-    * Processing {@link ComponentPlugin} for injection external components.
-    * 
-    * @param plugin See {@link ComponentPlugin}
-    */
-   @SuppressWarnings("unchecked")
-   public void addPlugin(ComponentPlugin plugin)
-   {
-      // NOTE!!! ProviderBinder should be already initialized by ResourceBinder
-      ProviderBinder providers = ProviderBinder.getInstance();
-      if (MethodInvokerFilterComponentPlugin.class.isAssignableFrom(plugin.getClass()))
-      {
-         // add method invoker filter
-         for (Class<? extends MethodInvokerFilter> filter : ((MethodInvokerFilterComponentPlugin)plugin).getFilters())
-            providers.addMethodInvokerFilter(filter);
-      }
-      else if (EntityProviderComponentPlugin.class.isAssignableFrom(plugin.getClass()))
-      {
-         // add external entity providers
-         Set<Class<? extends EntityProvider>> eps = ((EntityProviderComponentPlugin)plugin).getEntityProviders();
-         for (Class<? extends EntityProvider> ep : eps)
-         {
-            providers.addMessageBodyReader(ep);
-            providers.addMessageBodyWriter(ep);
-         }
-      }
-      else if (RequestFilterComponentPlugin.class.isAssignableFrom(plugin.getClass()))
-      {
-         Set<Class<? extends RequestFilter>> filters = ((RequestFilterComponentPlugin)plugin).getFilters();
-         for (Class<? extends RequestFilter> filter : filters)
-            providers.addRequestFilter(filter);
-      }
-      else if (ResponseFilterComponentPlugin.class.isAssignableFrom(plugin.getClass()))
-      {
-         Set<Class<? extends ResponseFilter>> filters = ((ResponseFilterComponentPlugin)plugin).getFilters();
-         for (Class<? extends ResponseFilter> filter : filters)
-            providers.addResponseFilter(filter);
-      }
    }
 
 }

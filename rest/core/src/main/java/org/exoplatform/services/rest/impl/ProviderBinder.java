@@ -20,8 +20,6 @@ package org.exoplatform.services.rest.impl;
 
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
-import org.exoplatform.services.rest.ComponentLifecycleScope;
-import org.exoplatform.services.rest.ContainerObjectFactory;
 import org.exoplatform.services.rest.FilterDescriptor;
 import org.exoplatform.services.rest.ObjectFactory;
 import org.exoplatform.services.rest.PerRequestObjectFactory;
@@ -120,7 +118,7 @@ public class ProviderBinder implements Providers
     */
    void init()
    {
-      // TODO remove this hard code
+      // Add known Providers, Filters, etc with predefined life cycle.
       ByteEntityProvider baep = new ByteEntityProvider();
       addMessageBodyReader(baep);
       addMessageBodyWriter(baep);
@@ -180,7 +178,7 @@ public class ProviderBinder implements Providers
       addMessageBodyReader(MultipartFormDataEntityProvider.class);
 
       // JAXB context
-      addContextResolver(JAXBContextResolver.class, null, ComponentLifecycleScope.CONTAINER);
+      addContextResolver(JAXBContextResolver.class);
 
    }
 
@@ -243,7 +241,10 @@ public class ProviderBinder implements Providers
    {
       try
       {
-         addContextResolver(clazz, null, ComponentLifecycleScope.PER_REQUEST);
+         ProviderDescriptor descriptor = new ProviderDescriptorImpl(clazz);
+         descriptor.accept(rdv);
+
+         addContextResolver(new PerRequestObjectFactory<ProviderDescriptor>(descriptor));
       }
       catch (Exception e)
       {
@@ -262,11 +263,55 @@ public class ProviderBinder implements Providers
       Class<? extends ContextResolver> clazz = instance.getClass();
       try
       {
-         addContextResolver(clazz, instance, ComponentLifecycleScope.SINGLETON);
+         ProviderDescriptor descriptor = new ProviderDescriptorImpl(clazz);
+         descriptor.accept(rdv);
+
+         addContextResolver(new SingletonObjectFactory<ProviderDescriptor>(descriptor, instance));
       }
       catch (Exception e)
       {
          LOG.error("Failed add ContextResolver " + clazz.getName(), e);
+      }
+   }
+
+   protected void addContextResolver(ObjectFactory<ProviderDescriptor> contextResolverFactory)
+   {
+      for (Type type : contextResolverFactory.getObjectModel().getObjectClass().getGenericInterfaces())
+      {
+         if (type instanceof ParameterizedType)
+         {
+            ParameterizedType pt = (ParameterizedType)type;
+            if (ContextResolver.class == pt.getRawType())
+            {
+               Type[] atypes = pt.getActualTypeArguments();
+               if (atypes.length > 1)
+                  throw new RuntimeException("Unable strong determine actual type argument, more then one type found.");
+
+               Class<?> aclazz = (Class<?>)atypes[0];
+
+               MediaTypeMap<ObjectFactory<ProviderDescriptor>> pm = contextResolvers.get(aclazz);
+
+               if (pm == null)
+               {
+                  pm = new MediaTypeMap<ObjectFactory<ProviderDescriptor>>();
+                  contextResolvers.put(aclazz, pm);
+               }
+
+               for (MediaType mime : contextResolverFactory.getObjectModel().produces())
+               {
+                  if (pm.get(mime) != null)
+                  {
+                     String msg =
+                        "ContextResolver for " + aclazz.getName() + " and media type " + mime + " already registered.";
+                     throw new RuntimeException(msg);
+                  }
+                  else
+                  {
+                     pm.put(mime, contextResolverFactory);
+                  }
+               }
+            }
+         }
       }
    }
 
@@ -280,7 +325,7 @@ public class ProviderBinder implements Providers
    {
       try
       {
-         addExceptionMapper(clazz, null, ComponentLifecycleScope.PER_REQUEST);
+         addExceptionMapper(new PerRequestObjectFactory(new ProviderDescriptorImpl(clazz)));
       }
       catch (Exception e)
       {
@@ -299,11 +344,38 @@ public class ProviderBinder implements Providers
       Class<? extends ExceptionMapper> clazz = instance.getClass();
       try
       {
-         addExceptionMapper(clazz, instance, ComponentLifecycleScope.SINGLETON);
+         addExceptionMapper(new SingletonObjectFactory(new ProviderDescriptorImpl(clazz), instance));
       }
       catch (Exception e)
       {
          LOG.error("Failed add ExceptionMapper " + clazz.getName(), e);
+      }
+   }
+
+   @SuppressWarnings("unchecked")
+   protected void addExceptionMapper(ObjectFactory<ProviderDescriptor> exceptionMapperFactory)
+   {
+      for (Type type : exceptionMapperFactory.getObjectModel().getObjectClass().getGenericInterfaces())
+      {
+         if (type instanceof ParameterizedType)
+         {
+            ParameterizedType pt = (ParameterizedType)type;
+            if (ExceptionMapper.class == pt.getRawType())
+            {
+               Type[] atypes = pt.getActualTypeArguments();
+               if (atypes.length > 1)
+                  throw new RuntimeException("Unable strong determine actual type argument, more then one type found.");
+               Class<? extends Throwable> exc = (Class<? extends Throwable>)atypes[0];
+
+               if (exceptionMappers.get(exc) != null)
+               {
+                  String msg = "ExceptionMapper for exception " + exc + " already registered.";
+                  throw new RuntimeException(msg);
+               }
+
+               exceptionMappers.put(exc, exceptionMapperFactory);
+            }
+         }
       }
    }
 
@@ -317,7 +389,10 @@ public class ProviderBinder implements Providers
    {
       try
       {
-         addMessageBodyReader(clazz, null, ComponentLifecycleScope.PER_REQUEST);
+         ProviderDescriptor descriptor = new ProviderDescriptorImpl(clazz);
+         descriptor.accept(rdv);
+
+         addMessageBodyReader(new PerRequestObjectFactory<ProviderDescriptor>(descriptor));
       }
       catch (Exception e)
       {
@@ -336,12 +411,25 @@ public class ProviderBinder implements Providers
       Class<? extends MessageBodyReader> clazz = instance.getClass();
       try
       {
-         addMessageBodyReader(clazz, instance, ComponentLifecycleScope.SINGLETON);
+         ProviderDescriptor descriptor = new ProviderDescriptorImpl(clazz);
+         descriptor.accept(rdv);
+
+         addMessageBodyReader(new SingletonObjectFactory(descriptor, instance));
       }
       catch (Exception e)
       {
          LOG.error("Failed add MessageBodyReader " + clazz.getName(), e);
       }
+   }
+
+   protected void addMessageBodyReader(ObjectFactory<ProviderDescriptor> readerFactory)
+   {
+      // MessageBodyReader is smart component and can determine which type it
+      // supports, see method MessageBodyReader.isReadable. So here does not
+      // check is reader for the same Java and media type already exists.
+      // Let it be under developer's control.
+      for (MediaType mime : readerFactory.getObjectModel().consumes())
+         readProviders.getList(mime).add(readerFactory);
    }
 
    /**
@@ -354,7 +442,10 @@ public class ProviderBinder implements Providers
    {
       try
       {
-         addMessageBodyWriter(clazz, null, ComponentLifecycleScope.PER_REQUEST);
+         ProviderDescriptor descriptor = new ProviderDescriptorImpl(clazz);
+         descriptor.accept(rdv);
+         
+         addMessageBodyWriter(new PerRequestObjectFactory<ProviderDescriptor>(descriptor));
       }
       catch (Exception e)
       {
@@ -373,7 +464,10 @@ public class ProviderBinder implements Providers
       Class<? extends MessageBodyWriter> clazz = instance.getClass();
       try
       {
-         addMessageBodyWriter(clazz, instance, ComponentLifecycleScope.SINGLETON);
+         ProviderDescriptor descriptor = new ProviderDescriptorImpl(clazz);
+         descriptor.accept(rdv);
+
+         addMessageBodyWriter(new SingletonObjectFactory<ProviderDescriptor>(descriptor, instance));
       }
       catch (Exception e)
       {
@@ -381,6 +475,17 @@ public class ProviderBinder implements Providers
       }
    }
 
+   protected void addMessageBodyWriter(ObjectFactory<ProviderDescriptor> writerFactory)
+   {
+      // MessageBodyWriter is smart component and can determine which type it
+      // supports, see method MessageBodyWriter.isWriteable. So here does not
+      // check is writer for the same Java and media type already exists.
+      // Let it be under developer's control.
+      for (MediaType mime : writerFactory.getObjectModel().produces())
+         writeProviders.getList(mime).add(writerFactory);
+   }
+   
+   
    /**
     * Get list of most acceptable writer's media type for specified type.
     * 
@@ -491,7 +596,10 @@ public class ProviderBinder implements Providers
    {
       try
       {
-         addMethodInvokerFilter(clazz, null, ComponentLifecycleScope.PER_REQUEST);
+         FilterDescriptor descriptor = new FilterDescriptorImpl(clazz);
+         descriptor.accept(rdv);
+         
+         addMethodInvokerFilter(new PerRequestObjectFactory<FilterDescriptor>(descriptor));
       }
       catch (Exception e)
       {
@@ -509,12 +617,20 @@ public class ProviderBinder implements Providers
       Class<? extends MethodInvokerFilter> clazz = instance.getClass();
       try
       {
-         addMethodInvokerFilter(clazz, instance, ComponentLifecycleScope.SINGLETON);
+         FilterDescriptor descriptor = new FilterDescriptorImpl(clazz);
+         descriptor.accept(rdv);
+         
+         addMethodInvokerFilter(new SingletonObjectFactory<FilterDescriptor>(descriptor, instance));
       }
       catch (Exception e)
       {
          LOG.error("Failed add RequestFilter " + clazz.getName(), e);
       }
+   }
+   
+   protected void addMethodInvokerFilter(ObjectFactory<FilterDescriptor> filterFactory)
+   {
+      invokerFilters.getList(filterFactory.getObjectModel().getUriPattern()).add(filterFactory);
    }
 
    /**
@@ -526,7 +642,10 @@ public class ProviderBinder implements Providers
    {
       try
       {
-         addRequestFilter(clazz, null, ComponentLifecycleScope.PER_REQUEST);
+         FilterDescriptor descriptor = new FilterDescriptorImpl(clazz);
+         descriptor.accept(rdv);
+
+         addRequestFilter(new PerRequestObjectFactory<FilterDescriptor>(descriptor));
       }
       catch (Exception e)
       {
@@ -544,12 +663,20 @@ public class ProviderBinder implements Providers
       Class<? extends RequestFilter> clazz = instance.getClass();
       try
       {
-         addRequestFilter(clazz, instance, ComponentLifecycleScope.SINGLETON);
+         FilterDescriptor descriptor = new FilterDescriptorImpl(clazz);
+         descriptor.accept(rdv);
+
+         addRequestFilter(new SingletonObjectFactory<FilterDescriptor>(descriptor, instance));
       }
       catch (Exception e)
       {
          LOG.error("Failed add RequestFilter " + clazz.getName(), e);
       }
+   }
+   
+   protected  void addRequestFilter(ObjectFactory<FilterDescriptor> filterFactory)
+   {
+      requestFilters.getList(filterFactory.getObjectModel().getUriPattern()).add(filterFactory);
    }
 
    /**
@@ -561,7 +688,10 @@ public class ProviderBinder implements Providers
    {
       try
       {
-         addResponseFilter(clazz, null, ComponentLifecycleScope.PER_REQUEST);
+         FilterDescriptor descriptor = new FilterDescriptorImpl(clazz);
+         descriptor.accept(rdv);
+
+         addResponseFilter(new PerRequestObjectFactory<FilterDescriptor>(descriptor));
       }
       catch (Exception e)
       {
@@ -579,12 +709,20 @@ public class ProviderBinder implements Providers
       Class<? extends ResponseFilter> clazz = instance.getClass();
       try
       {
-         addResponseFilter(clazz, instance, ComponentLifecycleScope.SINGLETON);
+         FilterDescriptor descriptor = new FilterDescriptorImpl(clazz);
+         descriptor.accept(rdv);
+
+         addResponseFilter(new SingletonObjectFactory<FilterDescriptor>(descriptor, instance));
       }
       catch (Exception e)
       {
          LOG.error("Failed add ResponseFilter " + clazz.getName(), e);
       }
+   }
+   
+   protected void addResponseFilter(ObjectFactory<FilterDescriptor> filterFactory)
+   {
+      responseFilters.getList(filterFactory.getObjectModel().getUriPattern()).add(filterFactory);
    }
 
    /**
@@ -724,295 +862,6 @@ public class ProviderBinder implements Providers
             return writer;
       }
       return null;
-   }
-
-   /**
-    * @param clazz ContextResolver class
-    * @param instance ContextResolver instance, may be null if not singleton
-    *          instance
-    * @param scope ComponentLifecycleScope
-    */
-   @SuppressWarnings("unchecked")
-   public void addContextResolver(Class<? extends ContextResolver> clazz, ContextResolver instance,
-      ComponentLifecycleScope scope)
-   {
-      for (Type type : clazz.getGenericInterfaces())
-      {
-         if (type instanceof ParameterizedType)
-         {
-            ParameterizedType pt = (ParameterizedType)type;
-            if (ContextResolver.class == pt.getRawType())
-            {
-               Type[] atypes = pt.getActualTypeArguments();
-               if (atypes.length > 1)
-                  throw new RuntimeException("Unable strong determine actual type argument, more then one type found.");
-
-               Class<?> aclazz = (Class<?>)atypes[0];
-
-               MediaTypeMap<ObjectFactory<ProviderDescriptor>> pm = contextResolvers.get(aclazz);
-
-               if (pm == null)
-               {
-                  pm = new MediaTypeMap<ObjectFactory<ProviderDescriptor>>();
-                  contextResolvers.put(aclazz, pm);
-               }
-
-               ProviderDescriptor descriptor = new ProviderDescriptorImpl(clazz);
-               descriptor.accept(rdv);
-
-               ObjectFactory<ProviderDescriptor> factory = null;
-               switch (scope)
-               {
-                  case PER_REQUEST :
-                     factory = new PerRequestObjectFactory<ProviderDescriptor>(descriptor);
-                     break;
-                  case SINGLETON :
-                     if (instance == null)
-                        throw new NullPointerException("ContextResolver instance is null.");
-                     factory = new SingletonObjectFactory<ProviderDescriptor>(descriptor, instance);
-                     break;
-                  case CONTAINER :
-                     factory = new ContainerObjectFactory<ProviderDescriptor>(descriptor);
-                     break;
-               }
-
-               for (MediaType mime : factory.getObjectModel().produces())
-               {
-                  if (pm.get(mime) != null)
-                  {
-                     String msg =
-                        "ContextResolver for " + aclazz.getName() + " and media type " + mime + " already registered.";
-                     throw new RuntimeException(msg);
-                  }
-                  else
-                  {
-                     pm.put(mime, factory);
-                  }
-               }
-            }
-         }
-      }
-   }
-
-   /**
-    * @param clazz MessageBodyreader class
-    * @param instance MessageBodyReader, may be null if not singleton instance
-    * @param scope ComponentLifecycleScope
-    */
-   @SuppressWarnings("unchecked")
-   public void addMessageBodyReader(Class<? extends MessageBodyReader> clazz, MessageBodyReader instance,
-      ComponentLifecycleScope scope)
-   {
-      ProviderDescriptor descriptor = new ProviderDescriptorImpl(clazz);
-      descriptor.accept(rdv);
-
-      ObjectFactory<ProviderDescriptor> factory = null;
-      switch (scope)
-      {
-         case PER_REQUEST :
-            factory = new PerRequestObjectFactory<ProviderDescriptor>(descriptor);
-            break;
-         case SINGLETON :
-            if (instance == null)
-               throw new NullPointerException("MessageBodyReader instance is null.");
-            factory = new SingletonObjectFactory<ProviderDescriptor>(descriptor, instance);
-            break;
-         case CONTAINER :
-            factory = new ContainerObjectFactory<ProviderDescriptor>(descriptor);
-            break;
-      }
-
-      // MessageBodyReader is smart component and can determine which type it
-      // supports, see method MessageBodyReader.isReadable. So here does not
-      // check is reader for the same Java and media type already exists.
-      // Let it be under developer's control.
-      for (MediaType mime : factory.getObjectModel().consumes())
-         readProviders.getList(mime).add(factory);
-   }
-
-   /**
-    * @param clazz MessageBodyWriter class
-    * @param instance MessageBodyWriter, may be null if not singleton instance
-    * @param scope ComponentLifecycleScope
-    */
-   @SuppressWarnings("unchecked")
-   public void addMessageBodyWriter(Class<? extends MessageBodyWriter> clazz, MessageBodyWriter instance,
-      ComponentLifecycleScope scope)
-   {
-      ProviderDescriptor descriptor = new ProviderDescriptorImpl(clazz);
-      descriptor.accept(rdv);
-
-      ObjectFactory<ProviderDescriptor> factory = null;
-      switch (scope)
-      {
-         case PER_REQUEST :
-            factory = new PerRequestObjectFactory<ProviderDescriptor>(descriptor);
-            break;
-         case SINGLETON :
-            if (instance == null)
-               throw new NullPointerException("MessageBodyWriter instance is null.");
-            factory = new SingletonObjectFactory<ProviderDescriptor>(descriptor, instance);
-            break;
-         case CONTAINER :
-            factory = new ContainerObjectFactory<ProviderDescriptor>(descriptor);
-            break;
-      }
-
-      // MessageBodyWriter is smart component and can determine which type it
-      // supports, see method MessageBodyWriter.isWriteable. So here does not
-      // check is writer for the same Java and media type already exists.
-      // Let it be under developer's control.
-      for (MediaType mime : factory.getObjectModel().produces())
-         writeProviders.getList(mime).add(factory);
-   }
-
-   /**
-    * @param clazz ExceptionMapper class
-    * @param instance ExceptionMapper instance, may be null if not singleton
-    *          instance
-    * @param scope ComponentLifecycleScope
-    */
-   @SuppressWarnings("unchecked")
-   public void addExceptionMapper(Class<? extends ExceptionMapper> clazz, ExceptionMapper instance,
-      ComponentLifecycleScope scope)
-   {
-      for (Type type : clazz.getGenericInterfaces())
-      {
-         if (type instanceof ParameterizedType)
-         {
-            ParameterizedType pt = (ParameterizedType)type;
-            if (ExceptionMapper.class == pt.getRawType())
-            {
-               Type[] atypes = pt.getActualTypeArguments();
-               if (atypes.length > 1)
-                  throw new RuntimeException("Unable strong determine actual type argument, more then one type found.");
-               Class<? extends Throwable> exc = (Class<? extends Throwable>)atypes[0];
-
-               if (exceptionMappers.get(exc) != null)
-               {
-                  String msg = "ExceptionMapper for exception " + exc + " already registered.";
-                  throw new RuntimeException(msg);
-               }
-
-               ProviderDescriptor descriptor = new ProviderDescriptorImpl(clazz);
-               descriptor.accept(rdv);
-               ObjectFactory<ProviderDescriptor> factory = null;
-
-               switch (scope)
-               {
-                  case PER_REQUEST :
-                     factory = new PerRequestObjectFactory<ProviderDescriptor>(descriptor);
-                     break;
-                  case SINGLETON :
-                     if (instance == null)
-                        throw new NullPointerException("ExceptionMapper instance is null.");
-                     factory = new SingletonObjectFactory<ProviderDescriptor>(descriptor, instance);
-                     break;
-                  case CONTAINER :
-                     factory = new ContainerObjectFactory<ProviderDescriptor>(descriptor);
-                     break;
-               }
-
-               exceptionMappers.put(exc, factory);
-            }
-         }
-      }
-   }
-
-   /**
-    * @param clazz RequestFilter class
-    * @param instance RequestFilter instance, may be null if not singleton
-    *          instance
-    * @param scope ComponentLifecycleScope
-    */
-   public void addRequestFilter(Class<? extends RequestFilter> clazz, RequestFilter instance,
-      ComponentLifecycleScope scope)
-   {
-
-      FilterDescriptor descriptor = new FilterDescriptorImpl(clazz);
-      descriptor.accept(rdv);
-
-      ObjectFactory<FilterDescriptor> factory = new PerRequestObjectFactory<FilterDescriptor>(descriptor);
-      switch (scope)
-      {
-         case PER_REQUEST :
-            factory = new PerRequestObjectFactory<FilterDescriptor>(descriptor);
-            break;
-         case SINGLETON :
-            if (instance == null)
-               throw new NullPointerException("RequestFilter instance is null.");
-            factory = new SingletonObjectFactory<FilterDescriptor>(descriptor, instance);
-            break;
-         case CONTAINER :
-            factory = new ContainerObjectFactory<FilterDescriptor>(descriptor);
-            break;
-      }
-
-      requestFilters.getList(descriptor.getUriPattern()).add(factory);
-   }
-
-   /**
-    * @param clazz ResponseFilter class
-    * @param instance ResponseFilter instance, may be null if not singleton
-    *          instance
-    * @param scope ComponentLifecycleScope
-    */
-   public void addResponseFilter(Class<? extends ResponseFilter> clazz, ResponseFilter instance,
-      ComponentLifecycleScope scope)
-   {
-
-      FilterDescriptor descriptor = new FilterDescriptorImpl(clazz);
-      descriptor.accept(rdv);
-
-      ObjectFactory<FilterDescriptor> factory = new PerRequestObjectFactory<FilterDescriptor>(descriptor);
-      switch (scope)
-      {
-         case PER_REQUEST :
-            factory = new PerRequestObjectFactory<FilterDescriptor>(descriptor);
-            break;
-         case SINGLETON :
-            if (instance == null)
-               throw new NullPointerException("ResponseFilter instance is null.");
-            factory = new SingletonObjectFactory<FilterDescriptor>(descriptor, instance);
-            break;
-         case CONTAINER :
-            factory = new ContainerObjectFactory<FilterDescriptor>(descriptor);
-            break;
-      }
-
-      responseFilters.getList(descriptor.getUriPattern()).add(factory);
-   }
-
-   /**
-    * @param clazz MethodInvokerFilter class
-    * @param instance MethodInvokerFilter instance, may be null if not singleton
-    *          instance
-    * @param scope ComponentLifecycleScope
-    */
-   public void addMethodInvokerFilter(Class<? extends MethodInvokerFilter> clazz, MethodInvokerFilter instance,
-      ComponentLifecycleScope scope)
-   {
-
-      FilterDescriptor descriptor = new FilterDescriptorImpl(clazz);
-      descriptor.accept(rdv);
-
-      ObjectFactory<FilterDescriptor> factory = new PerRequestObjectFactory<FilterDescriptor>(descriptor);
-      switch (scope)
-      {
-         case PER_REQUEST :
-            factory = new PerRequestObjectFactory<FilterDescriptor>(descriptor);
-            break;
-         case SINGLETON :
-            if (instance == null)
-               throw new NullPointerException("MethodInvokerFilter instance is null.");
-            factory = new SingletonObjectFactory<FilterDescriptor>(descriptor, instance);
-            break;
-         case CONTAINER :
-            factory = new ContainerObjectFactory<FilterDescriptor>(descriptor);
-            break;
-      }
-
-      invokerFilters.getList(descriptor.getUriPattern()).add(factory);
    }
 
 }

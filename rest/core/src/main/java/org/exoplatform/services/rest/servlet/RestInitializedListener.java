@@ -16,23 +16,29 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.exoplatform.services.rest;
+package org.exoplatform.services.rest.servlet;
+
+import org.exoplatform.services.rest.RequestHandler;
+import org.exoplatform.services.rest.impl.RequestHandlerImpl;
+
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
 
 /**
- * Object scope identifier.
+ * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
+ * @version $Id$
  */
-@Deprecated
-public enum ComponentLifecycleScope {
-   /**
-    * New instance of object created foe each request.
-    */
-   PER_REQUEST,
-   /**
-    * Singleton lifecycle.
-    */
-   SINGLETON,
-   /**
-    * Inversion-of-control framework controls component's lifecycle.
-    */
-   CONTAINER
+public class RestInitializedListener implements ServletContextListener
+{
+
+   public void contextDestroyed(ServletContextEvent event)
+   {
+   }
+
+   public void contextInitialized(ServletContextEvent event)
+   {
+      RequestHandler handler = new RequestHandlerImpl();
+      event.getServletContext().setAttribute(RequestHandler.class.getName(), handler);
+   }
+
 }

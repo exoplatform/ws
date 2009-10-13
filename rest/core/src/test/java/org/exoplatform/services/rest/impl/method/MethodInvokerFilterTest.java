@@ -20,7 +20,6 @@ package org.exoplatform.services.rest.impl.method;
 
 import org.exoplatform.services.rest.AbstractResourceTest;
 import org.exoplatform.services.rest.Filter;
-import org.exoplatform.services.rest.impl.ResourceBinder;
 import org.exoplatform.services.rest.method.MethodInvokerFilter;
 import org.exoplatform.services.rest.resource.GenericMethodResource;
 import org.exoplatform.services.rest.resource.ResourceMethodDescriptor;
@@ -57,18 +56,18 @@ public class MethodInvokerFilterTest extends AbstractResourceTest
       @Context
       private HttpServletRequest httpRequest;
 
-      private ResourceBinder binder; // exo container component
+//      private ResourceBinder binder; // exo container component
 
-      public MethodInvokerFilter1(@Context UriInfo uriInfo, @Context HttpHeaders httpHeaders, ResourceBinder binder)
+      public MethodInvokerFilter1(@Context UriInfo uriInfo, @Context HttpHeaders httpHeaders/*, ResourceBinder binder*/)
       {
          this.uriInfo = uriInfo;
          this.httpHeaders = httpHeaders;
-         this.binder = binder;
+//         this.binder = binder;
       }
 
       public void accept(GenericMethodResource genericMethodResource)
       {
-         if (uriInfo != null && httpHeaders != null && providers != null && httpRequest != null && binder != null)
+         if (uriInfo != null && httpHeaders != null && providers != null && httpRequest != null/* && binder != null*/)
          {
             if (genericMethodResource instanceof SubResourceMethodDescriptor)
                // not invoke sub-resource method

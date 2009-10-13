@@ -28,7 +28,7 @@ import org.exoplatform.container.ExoContainerContext;
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
  * @version $Id: $
  */
-
+@Deprecated
 public class ContainerObjectFactory<T extends ObjectModel> implements ObjectFactory<T>
 {
 

@@ -256,7 +256,7 @@ public class RequestDispatcherTest extends AbstractResourceTest
 
    public void testResourceConstructorsContainer() throws Exception
    {
-      container.registerComponentInstance(TestContainerComponent.class.getName(), new TestContainerComponent());
+//      container.registerComponentInstance(TestContainerComponent.class.getName(), new TestContainerComponent());
       registry(Resource4.class);
       service("GET", "/aaa/bbb", "", null, null);
       unregistry(Resource4.class);

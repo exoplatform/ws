@@ -51,7 +51,7 @@
       </init-params>
    </component>
 
-   <component>
+   <!-- component>
       <type>org.exoplatform.services.rest.impl.RequestHandlerImpl</type>
    </component>
    <component>
@@ -59,7 +59,7 @@
    </component>
    <component>
       <type>org.exoplatform.services.rest.impl.ResourceBinder</type>
-   </component>
+   </component -->
    <component>
       <type>org.exoplatform.services.rest.impl.provider.JAXBContextResolver</type>
    </component>

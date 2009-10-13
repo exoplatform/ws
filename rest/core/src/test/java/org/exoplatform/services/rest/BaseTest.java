@@ -22,9 +22,9 @@ import junit.framework.TestCase;
 
 import org.exoplatform.container.StandaloneContainer;
 import org.exoplatform.services.rest.impl.ApplicationContextImpl;
+import org.exoplatform.services.rest.impl.BaseResourceBinder;
 import org.exoplatform.services.rest.impl.ProviderBinder;
 import org.exoplatform.services.rest.impl.RequestHandlerImpl;
-import org.exoplatform.services.rest.impl.ResourceBinder;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
@@ -33,26 +33,31 @@ import org.exoplatform.services.rest.impl.ResourceBinder;
 public abstract class BaseTest extends TestCase
 {
 
-   protected StandaloneContainer container;
+//   protected StandaloneContainer container;
 
    protected ProviderBinder providers;
 
-   protected ResourceBinder binder;
+   protected BaseResourceBinder binder;
 
    protected RequestHandlerImpl requestHandler;
 
    public void setUp() throws Exception
    {
       StandaloneContainer.setConfigurationPath("src/test/java/conf/standalone/test-configuration.xml");
-      container = StandaloneContainer.getInstance();
-      binder = (ResourceBinder)container.getComponentInstanceOfType(ResourceBinder.class);
-      requestHandler = (RequestHandlerImpl)container.getComponentInstanceOfType(RequestHandlerImpl.class);
+//      container = StandaloneContainer.getInstance();
+
+      requestHandler = new RequestHandlerImpl();
+      requestHandler.init();
+      binder = (BaseResourceBinder)requestHandler.getBinder();
+      
+//      binder = (ResourceBinder)container.getComponentInstanceOfType(ResourceBinder.class);
+//      requestHandler = (RequestHandlerImpl)container.getComponentInstanceOfType(RequestHandlerImpl.class);
       // reset providers to be sure it is clean
       ProviderBinder.setInstance(new ProviderBinder());
       providers = ProviderBinder.getInstance();
       //    System.out.println("##########################"+providers);
       ApplicationContextImpl.setCurrent(new ApplicationContextImpl(null, null, providers));
-      binder.clear();
+//      binder.clear();
    }
 
    public void tearDown() throws Exception

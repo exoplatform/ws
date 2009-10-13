@@ -54,19 +54,19 @@ public class ResponseFilterTest extends AbstractResourceTest
 
       private HttpServletRequest httpRequest;
 
-      private ResourceBinder binder; // exo container component
+//      private ResourceBinder binder; // exo container component
 
-      public ResponseFilter1(@Context Providers providers, @Context HttpServletRequest httpRequest,
-         ResourceBinder binder)
+      public ResponseFilter1(@Context Providers providers, @Context HttpServletRequest httpRequest/*,
+         ResourceBinder binder*/)
       {
          this.providers = providers;
          this.httpRequest = httpRequest;
-         this.binder = binder;
+//         this.binder = binder;
       }
 
       public void doFilter(GenericContainerResponse response)
       {
-         if (uriInfo != null && httpHeaders != null && providers != null && httpRequest != null && binder != null)
+         if (uriInfo != null && httpHeaders != null && providers != null && httpRequest != null /*&& binder != null*/)
             response.setResponse(Response.status(200).entity("to be or not to be").type("text/plain").build());
       }
 

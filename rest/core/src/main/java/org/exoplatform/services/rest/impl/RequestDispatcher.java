@@ -24,6 +24,7 @@ import org.exoplatform.services.rest.ApplicationContext;
 import org.exoplatform.services.rest.GenericContainerRequest;
 import org.exoplatform.services.rest.GenericContainerResponse;
 import org.exoplatform.services.rest.ObjectFactory;
+import org.exoplatform.services.rest.ResourceBinder;
 import org.exoplatform.services.rest.SingletonObjectFactory;
 import org.exoplatform.services.rest.impl.header.HeaderHelper;
 import org.exoplatform.services.rest.impl.header.MediaTypeHelper;

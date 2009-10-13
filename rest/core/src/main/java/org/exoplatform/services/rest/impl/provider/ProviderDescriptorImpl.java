@@ -83,6 +83,7 @@ public class ProviderDescriptorImpl implements ProviderDescriptor
    /**
     * @param provider provider instance
     */
+   @Deprecated
    public ProviderDescriptorImpl(Object provider)
    {
       this(provider.getClass(), ComponentLifecycleScope.SINGLETON);

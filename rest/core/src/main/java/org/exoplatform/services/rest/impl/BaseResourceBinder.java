@@ -18,21 +18,19 @@
  */
 package org.exoplatform.services.rest.impl;
 
-import org.exoplatform.container.ExoContainer;
-import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.rest.Filter;
 import org.exoplatform.services.rest.ObjectFactory;
 import org.exoplatform.services.rest.PerRequestObjectFactory;
 import org.exoplatform.services.rest.RequestFilter;
+import org.exoplatform.services.rest.ResourceBinder;
 import org.exoplatform.services.rest.ResponseFilter;
 import org.exoplatform.services.rest.SingletonObjectFactory;
 import org.exoplatform.services.rest.impl.resource.AbstractResourceDescriptorImpl;
 import org.exoplatform.services.rest.impl.resource.ResourceDescriptorValidator;
 import org.exoplatform.services.rest.method.MethodInvokerFilter;
 import org.exoplatform.services.rest.resource.AbstractResourceDescriptor;
-import org.exoplatform.services.rest.resource.ResourceContainer;
 import org.exoplatform.services.rest.resource.ResourceDescriptorVisitor;
 import org.exoplatform.services.rest.uri.UriPattern;
 
@@ -55,12 +53,10 @@ import javax.ws.rs.ext.RuntimeDelegate;
  * Lookup for root resource eXo container components at startup and
  * register/unregister resources via specified methods.
  * 
- * @see AbstractResourceDescriptor
- * @see SingletonResourceFactory
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  */
-public final class ResourceBinder
+public class BaseResourceBinder implements ResourceBinder
 {
 
    /**
@@ -112,10 +108,17 @@ public final class ResourceBinder
     */
    private final RuntimeDelegate rd;
 
+   public BaseResourceBinder()
+   {
+      rd = new RuntimeDelegateImpl();
+      RuntimeDelegate.setInstance(rd);
+   }
+   
    /**
     * @param containerContext eXo container context
     * @throws Exception if can't set instance of {@link RuntimeDelegate}
     */
+   /*
    @SuppressWarnings("unchecked")
    public ResourceBinder(ExoContainerContext containerContext) throws Exception
    {
@@ -149,12 +152,14 @@ public final class ResourceBinder
       }
 
    }
+   */
 
    /**
     * @param application Application
     * @see Application
     */
    @SuppressWarnings("unchecked")
+   @Deprecated
    public void addApplication(Application application)
    {
       ProviderBinder providers = ProviderBinder.getInstance();
@@ -247,13 +252,7 @@ public final class ResourceBinder
    }
 
    /**
-    * Register supplied Object as root resource if it has valid JAX-RS
-    * annotations and no one resource with the same UriPattern already
-    * registered.
-    * 
-    * @param resource candidate to be root resource
-    * @return true if resource was bound and false if resource was not bound
-    *         cause it is not root resource
+    * {@inheritDoc}
     */
    public boolean bind(final Object resource)
    {
@@ -322,9 +321,7 @@ public final class ResourceBinder
    }
 
    /**
-    * @param resourceClass class of candidate to be root resource
-    * @return true if resource was bound and false if resource was not bound
-    *         cause it is not root resource
+    * {@inheritDoc}
     */
    public boolean bind(final Class<?> resourceClass)
    {
@@ -393,10 +390,7 @@ public final class ResourceBinder
    }
 
    /**
-    * Remove root resource of supplied class from root resource collection.
-    * 
-    * @param clazz root resource class
-    * @return true if resource was unbound false otherwise
+    * {@inheritDoc}
     */
    @SuppressWarnings("unchecked")
    public boolean unbind(Class clazz)
@@ -420,6 +414,9 @@ public final class ResourceBinder
       }
    }
 
+   /**
+    * {@inheritDoc}
+    */
    public boolean unbind(String uriTemplate)
    {
       synchronized (rootResources)
@@ -451,7 +448,7 @@ public final class ResourceBinder
    }
 
    /**
-    * @return all registered root resources
+    * {@inheritDoc}
     */
    public List<ObjectFactory<AbstractResourceDescriptor>> getResources()
    {
@@ -459,7 +456,7 @@ public final class ResourceBinder
    }
 
    /**
-    * @return number of bound resources
+    * {@inheritDoc}
     */
    public int getSize()
    {

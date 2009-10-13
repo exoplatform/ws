@@ -54,18 +54,18 @@ public class RequestFilterTest extends AbstractResourceTest
 
       private HttpServletRequest httpRequest;
 
-      private ResourceBinder binder; // exo container component
+//      private ResourceBinder binder; // exo container component
 
-      public RequestFilter1(@Context Providers providers, @Context HttpServletRequest httpRequest, ResourceBinder binder)
+      public RequestFilter1(@Context Providers providers, @Context HttpServletRequest httpRequest/*, ResourceBinder binder*/)
       {
          this.providers = providers;
          this.httpRequest = httpRequest;
-         this.binder = binder;
+//         this.binder = binder;
       }
 
       public void doFilter(GenericContainerRequest request)
       {
-         if (uriInfo != null && httpHeaders != null && providers != null && httpRequest != null && binder != null)
+         if (uriInfo != null && httpHeaders != null && providers != null && httpRequest != null/* && binder != null*/)
             request.setMethod("POST");
       }
 
