@@ -18,7 +18,6 @@
  */
 package org.exoplatform.services.rest.impl;
 
-import org.exoplatform.services.rest.AbstractResourceTest;
 import org.exoplatform.services.rest.GenericContainerResponse;
 import org.exoplatform.services.rest.Property;
 

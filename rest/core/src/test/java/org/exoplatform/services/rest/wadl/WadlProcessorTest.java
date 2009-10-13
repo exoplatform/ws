@@ -18,7 +18,7 @@
  */
 package org.exoplatform.services.rest.wadl;
 
-import org.exoplatform.services.rest.BaseTest;
+import org.exoplatform.services.rest.impl.BaseTest;
 import org.exoplatform.services.rest.impl.resource.AbstractResourceDescriptorImpl;
 import org.exoplatform.services.rest.resource.AbstractResourceDescriptor;
 import org.exoplatform.services.rest.wadl.research.Application;

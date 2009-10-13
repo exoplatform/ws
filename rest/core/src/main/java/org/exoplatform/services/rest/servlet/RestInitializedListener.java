@@ -18,6 +18,7 @@
  */
 package org.exoplatform.services.rest.servlet;
 
+import org.exoplatform.services.rest.DependencyInjector;
 import org.exoplatform.services.rest.RequestHandler;
 import org.exoplatform.services.rest.impl.RequestHandlerImpl;
 
@@ -37,8 +38,32 @@ public class RestInitializedListener implements ServletContextListener
 
    public void contextInitialized(ServletContextEvent event)
    {
-      RequestHandler handler = new RequestHandlerImpl();
+      String dependencyInjectorFQN = event.getServletContext().getInitParameter(DependencyInjector.class.getName());
+      DependencyInjector dependencyInjector = null;
+      if (dependencyInjectorFQN != null)
+      {
+         try
+         {
+            Class<?> cl = Thread.currentThread().getContextClassLoader().loadClass(dependencyInjectorFQN.trim());
+            dependencyInjector = (DependencyInjector)cl.newInstance();
+         }
+         catch (ClassNotFoundException cnfe)
+         {
+            throw new RuntimeException(cnfe);
+         }
+         catch (InstantiationException ie)
+         {
+            throw new RuntimeException(ie);
+         }
+         catch (IllegalAccessException iae)
+         {
+            throw new RuntimeException(iae);
+         }
+      }
+
+      RequestHandler handler = new RequestHandlerImpl(dependencyInjector);
       event.getServletContext().setAttribute(RequestHandler.class.getName(), handler);
+      // TODO process for javax.ws.rs.Application
    }
 
 }

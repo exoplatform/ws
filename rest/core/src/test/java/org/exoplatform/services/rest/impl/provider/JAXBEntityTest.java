@@ -18,8 +18,8 @@
  */
 package org.exoplatform.services.rest.impl.provider;
 
-import org.exoplatform.services.rest.AbstractResourceTest;
 import org.exoplatform.services.rest.generated.Book;
+import org.exoplatform.services.rest.impl.AbstractResourceTest;
 import org.exoplatform.services.rest.impl.ContainerResponse;
 import org.exoplatform.services.rest.impl.MultivaluedMapImpl;
 import org.exoplatform.services.rest.tools.ByteArrayContainerResponseWriter;

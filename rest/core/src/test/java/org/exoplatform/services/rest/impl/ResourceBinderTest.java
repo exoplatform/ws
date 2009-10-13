@@ -18,7 +18,6 @@
  */
 package org.exoplatform.services.rest.impl;
 
-import org.exoplatform.services.rest.BaseTest;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;

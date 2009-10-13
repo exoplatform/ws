@@ -26,7 +26,7 @@ import javax.ws.rs.ext.Provider;
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
  * @version $Id: $
  */
-public class ContextResolverTest extends org.exoplatform.services.rest.AbstractResourceTest
+public class ContextResolverTest extends org.exoplatform.services.rest.impl.AbstractResourceTest
 {
 
    @Provider

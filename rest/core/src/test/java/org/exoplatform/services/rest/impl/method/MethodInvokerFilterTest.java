@@ -18,8 +18,8 @@
  */
 package org.exoplatform.services.rest.impl.method;
 
-import org.exoplatform.services.rest.AbstractResourceTest;
 import org.exoplatform.services.rest.Filter;
+import org.exoplatform.services.rest.impl.AbstractResourceTest;
 import org.exoplatform.services.rest.method.MethodInvokerFilter;
 import org.exoplatform.services.rest.resource.GenericMethodResource;
 import org.exoplatform.services.rest.resource.ResourceMethodDescriptor;

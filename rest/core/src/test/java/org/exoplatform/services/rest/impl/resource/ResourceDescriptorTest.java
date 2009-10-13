@@ -18,9 +18,9 @@
  */
 package org.exoplatform.services.rest.impl.resource;
 
-import org.exoplatform.services.rest.BaseTest;
 import org.exoplatform.services.rest.ConstructorDescriptor;
 import org.exoplatform.services.rest.FieldInjector;
+import org.exoplatform.services.rest.impl.BaseTest;
 import org.exoplatform.services.rest.impl.header.MediaTypeHelper;
 import org.exoplatform.services.rest.method.MethodParameter;
 import org.exoplatform.services.rest.resource.AbstractResourceDescriptor;

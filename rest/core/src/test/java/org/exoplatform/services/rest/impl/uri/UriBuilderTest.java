@@ -18,7 +18,7 @@
  */
 package org.exoplatform.services.rest.impl.uri;
 
-import org.exoplatform.services.rest.BaseTest;
+import org.exoplatform.services.rest.impl.BaseTest;
 
 import java.net.URI;
 import java.util.HashMap;

@@ -23,6 +23,8 @@ import org.exoplatform.services.rest.resource.AbstractResourceDescriptor;
 import java.util.List;
 
 /**
+ * Manages root resources.
+ * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
  * @version $Id$
  */

@@ -18,7 +18,7 @@
  */
 package org.exoplatform.services.rest.impl.resource;
 
-import org.exoplatform.services.rest.AbstractResourceTest;
+import org.exoplatform.services.rest.impl.AbstractResourceTest;
 import org.exoplatform.services.rest.impl.header.HeaderHelper;
 
 import java.util.ArrayList;

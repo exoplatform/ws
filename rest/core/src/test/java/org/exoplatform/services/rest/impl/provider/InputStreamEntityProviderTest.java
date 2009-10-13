@@ -18,7 +18,7 @@
  */
 package org.exoplatform.services.rest.impl.provider;
 
-import org.exoplatform.services.rest.BaseTest;
+import org.exoplatform.services.rest.impl.BaseTest;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

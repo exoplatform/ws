@@ -16,7 +16,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.exoplatform.services.rest;
+package org.exoplatform.services.rest.impl;
 
 import junit.framework.TestCase;
 
@@ -43,21 +43,19 @@ public abstract class BaseTest extends TestCase
 
    public void setUp() throws Exception
    {
-      StandaloneContainer.setConfigurationPath("src/test/java/conf/standalone/test-configuration.xml");
+//      StandaloneContainer.setConfigurationPath("src/test/java/conf/standalone/test-configuration.xml");
 //      container = StandaloneContainer.getInstance();
 
-      requestHandler = new RequestHandlerImpl();
+      requestHandler = new RequestHandlerImpl(new SimpleDependencyInjector());
       requestHandler.init();
       binder = (BaseResourceBinder)requestHandler.getBinder();
       
-//      binder = (ResourceBinder)container.getComponentInstanceOfType(ResourceBinder.class);
-//      requestHandler = (RequestHandlerImpl)container.getComponentInstanceOfType(RequestHandlerImpl.class);
       // reset providers to be sure it is clean
       ProviderBinder.setInstance(new ProviderBinder());
       providers = ProviderBinder.getInstance();
-      //    System.out.println("##########################"+providers);
+      // Set-up context for tests that are not used full request cycle.
+      // Usually context is set-up in RequestHandler
       ApplicationContextImpl.setCurrent(new ApplicationContextImpl(null, null, providers));
-//      binder.clear();
    }
 
    public void tearDown() throws Exception

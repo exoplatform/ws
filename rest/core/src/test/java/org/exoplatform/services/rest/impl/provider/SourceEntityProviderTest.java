@@ -18,7 +18,7 @@
  */
 package org.exoplatform.services.rest.impl.provider;
 
-import org.exoplatform.services.rest.BaseTest;
+import org.exoplatform.services.rest.impl.BaseTest;
 import org.exoplatform.services.rest.impl.MultivaluedMapImpl;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;

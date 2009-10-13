@@ -18,8 +18,8 @@
  */
 package org.exoplatform.services.rest.impl.provider;
 
-import org.exoplatform.services.rest.BaseTest;
 import org.exoplatform.services.rest.RequestHandler;
+import org.exoplatform.services.rest.impl.BaseTest;
 import org.exoplatform.services.rest.impl.MultivaluedMapImpl;
 
 import java.io.ByteArrayInputStream;

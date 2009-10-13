@@ -18,10 +18,10 @@
  */
 package org.exoplatform.services.rest.impl.provider;
 
-import org.exoplatform.services.rest.BaseTest;
 import org.exoplatform.services.rest.generated.Book;
 import org.exoplatform.services.rest.generated.MemberPrice;
 import org.exoplatform.services.rest.generated.Price;
+import org.exoplatform.services.rest.impl.BaseTest;
 import org.exoplatform.services.rest.impl.MultivaluedMapImpl;
 
 import java.io.ByteArrayInputStream;

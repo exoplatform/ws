@@ -50,9 +50,6 @@ import javax.ws.rs.ext.Provider;
 import javax.ws.rs.ext.RuntimeDelegate;
 
 /**
- * Lookup for root resource eXo container components at startup and
- * register/unregister resources via specified methods.
- * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
  * @version $Id$
  */

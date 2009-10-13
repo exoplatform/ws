@@ -18,7 +18,7 @@
  */
 package org.exoplatform.services.rest.impl.resource;
 
-import org.exoplatform.services.rest.AbstractResourceTest;
+import org.exoplatform.services.rest.impl.AbstractResourceTest;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;

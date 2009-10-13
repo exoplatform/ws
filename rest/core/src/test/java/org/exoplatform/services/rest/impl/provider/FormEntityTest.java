@@ -19,7 +19,7 @@
 package org.exoplatform.services.rest.impl.provider;
 
 import org.apache.commons.fileupload.FileItem;
-import org.exoplatform.services.rest.AbstractResourceTest;
+import org.exoplatform.services.rest.impl.AbstractResourceTest;
 import org.exoplatform.services.rest.impl.MultivaluedMapImpl;
 
 import java.io.ByteArrayOutputStream;

@@ -19,6 +19,7 @@
 package org.exoplatform.services.rest.impl;
 
 import org.exoplatform.services.rest.ApplicationContext;
+import org.exoplatform.services.rest.DependencyInjector;
 import org.exoplatform.services.rest.GenericContainerRequest;
 import org.exoplatform.services.rest.GenericContainerResponse;
 import org.exoplatform.services.rest.InitialProperties;
@@ -51,6 +52,14 @@ public class ApplicationContextImpl implements ApplicationContext
    private static ThreadLocal<ApplicationContext> current = new ThreadLocal<ApplicationContext>();
 
    /**
+    * @return current ApplicationContext.
+    */
+   public static ApplicationContext getCurrent()
+   {
+      return current.get();
+   }
+
+   /**
     * Set ApplicationContext for current thread.
     * 
     * @param context the ApplicationContext.
@@ -58,14 +67,6 @@ public class ApplicationContextImpl implements ApplicationContext
    public static void setCurrent(ApplicationContext context)
    {
       current.set(context);
-   }
-
-   /**
-    * @return current ApplicationContext.
-    */
-   public static ApplicationContext getCurrent()
-   {
-      return current.get();
    }
 
    /**
@@ -114,151 +115,6 @@ public class ApplicationContextImpl implements ApplicationContext
    protected ProviderBinder providers;
 
    /**
-    * Constructs new instance of ApplicationContext.
-    * 
-    * @param request See {@link GenricContainerRequest}
-    * @param response See {@link GenericContainerResponse}
-    * @param providers See {@link ProviderBinder}
-    */
-   public ApplicationContextImpl(GenericContainerRequest request, GenericContainerResponse response,
-      ProviderBinder providers)
-   {
-      this.request = request;
-      this.response = response;
-      this.providers = providers;
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public List<String> getParameterValues()
-   {
-      return parameterValues;
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public void setParameterNames(List<String> parameterNames)
-   {
-      if (encodedPathParameters == null)
-         encodedPathParameters = new MultivaluedMapImpl();
-
-      for (int i = 0; i < parameterNames.size(); i++)
-         encodedPathParameters.add(parameterNames.get(i), parameterValues.get(i));
-
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public void addMatchedResource(Object resource)
-   {
-      matchedResources.add(0, resource);
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public void addMatchedURI(String uri)
-   {
-      encodedMatchedURIs.add(0, uri);
-      matchedURIs.add(0, UriComponent.decode(uri, UriComponent.PATH_SEGMENT));
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public Map<String, Object> getAttributes()
-   {
-      return attributes == null ? attributes = new HashMap<String, Object>() : attributes;
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public Request getRequest()
-   {
-      return request;
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public HttpHeaders getHttpHeaders()
-   {
-      return request;
-   }
-   
-   /**
-    * {@inheritDoc}
-    */
-   public InitialProperties getInitialProperties()
-   {
-      return this;
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public SecurityContext getSecurityContext()
-   {
-      return request;
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public GenericContainerRequest getContainerRequest()
-   {
-      return request;
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public UriInfo getUriInfo()
-   {
-      return this;
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public GenericContainerResponse getContainerResponse()
-   {
-      return response;
-   }
-   
-   // InitialProperties
-
-   /**
-    * {@inheritDoc}
-    */
-   public Map<String, String> getProperties()
-   {
-      return properties == null ? properties = new HashMap<String, String>() : properties;
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public String getProperty(String name)
-   {
-      return getProperties().get(name);
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public void setProperty(String name, String value)
-   {
-      getProperties().put(name, value);
-   }
-
-   // UriInfo
-
-   /**
     * Absolute path, full requested URI without query string and fragment.
     */
    private URI absolutePath;
@@ -297,11 +153,43 @@ public class ApplicationContextImpl implements ApplicationContext
     * Not decoded query parameters.
     */
    private MultivaluedMap<String, String> encodedQueryParameters;
-
+   
    /**
     * Decoded query parameters.
     */
    private MultivaluedMap<String, String> queryParameters;
+
+   /**
+    * Constructs new instance of ApplicationContext.
+    * 
+    * @param request See {@link GenricContainerRequest}
+    * @param response See {@link GenericContainerResponse}
+    * @param providers See {@link ProviderBinder}
+    */
+   /*public */ApplicationContextImpl(GenericContainerRequest request, GenericContainerResponse response,
+      ProviderBinder providers)
+   {
+      this.request = request;
+      this.response = response;
+      this.providers = providers;
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   public void addMatchedResource(Object resource)
+   {
+      matchedResources.add(0, resource);
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   public void addMatchedURI(String uri)
+   {
+      encodedMatchedURIs.add(0, uri);
+      matchedURIs.add(0, UriComponent.decode(uri, UriComponent.PATH_SEGMENT));
+   }
 
    /**
     * {@inheritDoc}
@@ -313,13 +201,75 @@ public class ApplicationContextImpl implements ApplicationContext
 
       return absolutePath = getRequestUriBuilder().replaceQuery(null).fragment(null).build();
    }
-
+   
    /**
     * {@inheritDoc}
     */
    public UriBuilder getAbsolutePathBuilder()
    {
       return UriBuilder.fromUri(getAbsolutePath());
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   public Map<String, Object> getAttributes()
+   {
+      return attributes == null ? attributes = new HashMap<String, Object>() : attributes;
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   public URI getBaseUri()
+   {
+      return request.getBaseUri();
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   public UriBuilder getBaseUriBuilder()
+   {
+      return UriBuilder.fromUri(getBaseUri());
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   public GenericContainerRequest getContainerRequest()
+   {
+      return request;
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   public GenericContainerResponse getContainerResponse()
+   {
+      return response;
+   }
+
+   public DependencyInjector getDependencyInjector()
+   {
+      // TODO Auto-generated method stub
+      return null;
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   public HttpHeaders getHttpHeaders()
+   {
+      return request;
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   public InitialProperties getInitialProperties()
+   {
+      return this;
    }
 
    /**
@@ -349,17 +299,9 @@ public class ApplicationContextImpl implements ApplicationContext
    /**
     * {@inheritDoc}
     */
-   public URI getBaseUri()
+   public List<String> getParameterValues()
    {
-      return request.getBaseUri();
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public UriBuilder getBaseUriBuilder()
-   {
-      return UriBuilder.fromUri(getBaseUri());
+      return parameterValues;
    }
 
    /**
@@ -454,6 +396,30 @@ public class ApplicationContextImpl implements ApplicationContext
    /**
     * {@inheritDoc}
     */
+   public Map<String, String> getProperties()
+   {
+      return properties == null ? properties = new HashMap<String, String>() : properties;
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   public String getProperty(String name)
+   {
+      return getProperties().get(name);
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   public ProviderBinder getProviders()
+   {
+      return providers;
+   }
+
+   /**
+    * {@inheritDoc}
+    */
    public MultivaluedMap<String, String> getQueryParameters()
    {
       return getQueryParameters(true);
@@ -469,6 +435,14 @@ public class ApplicationContextImpl implements ApplicationContext
             UriComponent.parseQueryString(getRequestUri().getRawQuery(), true));
       return encodedQueryParameters != null ? encodedQueryParameters : (encodedQueryParameters =
          UriComponent.parseQueryString(getRequestUri().getRawQuery(), false));
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   public Request getRequest()
+   {
+      return request;
    }
 
    /**
@@ -490,9 +464,44 @@ public class ApplicationContextImpl implements ApplicationContext
    /**
     * {@inheritDoc}
     */
-   public ProviderBinder getProviders()
+   public SecurityContext getSecurityContext()
    {
-      return providers;
+      return request;
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   public UriInfo getUriInfo()
+   {
+      return this;
+   }
+
+   public void setDependencyInjector(DependencyInjector depInjector)
+   {
+      // TODO Auto-generated method stub
+      
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   public void setParameterNames(List<String> parameterNames)
+   {
+      if (encodedPathParameters == null)
+         encodedPathParameters = new MultivaluedMapImpl();
+
+      for (int i = 0; i < parameterNames.size(); i++)
+         encodedPathParameters.add(parameterNames.get(i), parameterValues.get(i));
+
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   public void setProperty(String name, String value)
+   {
+      getProperties().put(name, value);
    }
 
 }

@@ -46,6 +46,8 @@ import javax.ws.rs.ext.MessageBodyWriter;
 public class BaseRestServlet extends HttpServlet
 {
 
+   private static final long serialVersionUID = -8234561611241680339L;
+
    /**
     * See {@link ContainerResponseWriter}.
     */

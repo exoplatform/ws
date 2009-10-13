@@ -18,7 +18,6 @@
  */
 package org.exoplatform.services.rest.impl;
 
-import org.exoplatform.services.rest.BaseTest;
 import org.exoplatform.services.rest.impl.header.HeaderHelper;
 
 import java.net.URI;

@@ -18,19 +18,6 @@
  */
 package org.exoplatform.services.rest.impl;
 
-import org.exoplatform.services.log.ExoLogger;
-import org.exoplatform.services.log.Log;
-import org.exoplatform.services.rest.ApplicationContext;
-import org.exoplatform.services.rest.FilterDescriptor;
-import org.exoplatform.services.rest.GenericContainerRequest;
-import org.exoplatform.services.rest.GenericContainerResponse;
-import org.exoplatform.services.rest.ObjectFactory;
-import org.exoplatform.services.rest.RequestFilter;
-import org.exoplatform.services.rest.RequestHandler;
-import org.exoplatform.services.rest.ResourceBinder;
-import org.exoplatform.services.rest.ResponseFilter;
-import org.picocontainer.Startable;
-
 import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -43,12 +30,56 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.ext.ExceptionMapper;
 
+import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.services.log.Log;
+import org.exoplatform.services.rest.ApplicationContext;
+import org.exoplatform.services.rest.DependencyInjector;
+import org.exoplatform.services.rest.FilterDescriptor;
+import org.exoplatform.services.rest.GenericContainerRequest;
+import org.exoplatform.services.rest.GenericContainerResponse;
+import org.exoplatform.services.rest.ObjectFactory;
+import org.exoplatform.services.rest.RequestFilter;
+import org.exoplatform.services.rest.RequestHandler;
+import org.exoplatform.services.rest.ResourceBinder;
+import org.exoplatform.services.rest.ResponseFilter;
+
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
  * @version $Id: $
  */
 public final class RequestHandlerImpl implements RequestHandler
 {
+
+   /**
+    * For writing error message.
+    */
+   static class ErrorStreaming implements StreamingOutput
+   {
+
+      /**
+       * Exception which should send to client.
+       */
+      private final Exception e;
+
+      /**
+       * @param e Exception for serialization
+       */
+      ErrorStreaming(Exception e)
+      {
+         this.e = e;
+      }
+
+      /**
+       * {@inheritDoc}
+       */
+      public void write(OutputStream output)
+      {
+         PrintWriter pw = new PrintWriter(output);
+         e.printStackTrace(pw);
+         pw.flush();
+      }
+
+   }
 
    /**
     * Logger.
@@ -60,11 +91,6 @@ public final class RequestHandlerImpl implements RequestHandler
     * and may be accessible via method {@link ApplicationContextImpl#getProperties()}. 
     */
    private static final Map<String, String> properties = new HashMap<String, String>();
-
-   /**
-    * See {@link RequestDispatcher}.
-    */
-   private final RequestDispatcher dispatcher;
    
    public static final String getProperty(String name)
    {
@@ -78,23 +104,36 @@ public final class RequestHandlerImpl implements RequestHandler
       properties.put(name, value);
    }
 
-   private final ResourceBinder binder;
+   /**
+    * See {@link RequestDispatcher}.
+    */
+   private final RequestDispatcher dispatcher;
    
    /**
-    * Constructs new instance of {@link RequestHandler}.
+    * ResourceBinder.
     */
-   public RequestHandlerImpl()
+   private final ResourceBinder binder;
+   
+   private final DependencyInjector depInjector;
+   
+   public RequestHandlerImpl(DependencyInjector depInjector)
    {
       this.binder = new BaseResourceBinder();
       this.dispatcher = new RequestDispatcher(binder);
+      this.depInjector = depInjector;
    }
    
+   public RequestHandlerImpl(ResourceBinder binder, DependencyInjector depInjector)
+   {
+      this.binder = binder;
+      this.dispatcher = new RequestDispatcher(binder);
+      this.depInjector = depInjector;
+   }
+
    public ResourceBinder getBinder()
    {
       return binder;
    }
-   
-   // RequestHandler
 
    /**
     * {@inheritDoc}
@@ -106,6 +145,7 @@ public final class RequestHandlerImpl implements RequestHandler
       {
          ApplicationContext context = new ApplicationContextImpl(request, response, ProviderBinder.getInstance());
          context.getProperties().putAll(properties);
+         context.setDependencyInjector(depInjector);
          ApplicationContextImpl.setCurrent(context);
 
          for (ObjectFactory<FilterDescriptor> factory : ProviderBinder.getInstance().getRequestFilters(
@@ -223,39 +263,6 @@ public final class RequestHandlerImpl implements RequestHandler
          // reset application context
          ApplicationContextImpl.setCurrent(null);
       }
-   }
-
-   //
-
-   /**
-    * For writing error message.
-    */
-   static class ErrorStreaming implements StreamingOutput
-   {
-
-      /**
-       * Exception which should send to client.
-       */
-      private final Exception e;
-
-      /**
-       * @param e Exception for serialization
-       */
-      ErrorStreaming(Exception e)
-      {
-         this.e = e;
-      }
-
-      /**
-       * {@inheritDoc}
-       */
-      public void write(OutputStream output)
-      {
-         PrintWriter pw = new PrintWriter(output);
-         e.printStackTrace(pw);
-         pw.flush();
-      }
-
    }
 
    /**
