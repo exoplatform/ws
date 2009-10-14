@@ -59,7 +59,7 @@ public class BaseResourceBinder implements ResourceBinder
    /**
     * Logger.
     */
-   private static final Log LOG = ExoLogger.getLogger("ws.rest.core.ResourceBinder");
+   private static final Log LOG = ExoLogger.getLogger(BaseResourceBinder.class.getName());
 
    private static final Comparator<ObjectFactory<AbstractResourceDescriptor>> RESOURCE_COMPARATOR =
       new ResourceComparator();
@@ -111,46 +111,6 @@ public class BaseResourceBinder implements ResourceBinder
       RuntimeDelegate.setInstance(rd);
    }
    
-   /**
-    * @param containerContext eXo container context
-    * @throws Exception if can't set instance of {@link RuntimeDelegate}
-    */
-   /*
-   @SuppressWarnings("unchecked")
-   public ResourceBinder(ExoContainerContext containerContext) throws Exception
-   {
-      // Initialize RuntimeDelegate instance
-      // This is first component in life cycle what needs.
-      // TODO better solution to initialize RuntimeDelegate
-      rd = new RuntimeDelegateImpl();
-      RuntimeDelegate.setInstance(rd);
-
-      ExoContainer container = containerContext.getContainer();
-
-      // Lookup Applications
-      List<Application> al = container.getComponentInstancesOfType(Application.class);
-      for (Application a : al)
-      {
-         try
-         {
-            addApplication(a);
-         }
-         catch (Exception e)
-         {
-            LOG.error("Failed add JAX-RS application " + a.getClass().getName(), e);
-         }
-      }
-
-      // Lookup all object which implements ResourceContainer interface and
-      // process them to be add as root resources.
-      for (Object resource : container.getComponentInstancesOfType(ResourceContainer.class))
-      {
-         bind(resource);
-      }
-
-   }
-   */
-
    /**
     * @param application Application
     * @see Application

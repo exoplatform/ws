@@ -18,6 +18,7 @@
  */
 package org.exoplatform.services.rest.impl.method;
 
+import org.exoplatform.services.rest.Inject;
 import org.exoplatform.services.rest.Property;
 import org.exoplatform.services.rest.method.TypeProducer;
 
@@ -88,11 +89,12 @@ public class ParameterHelper
    static
    {
       PROVIDER_FIELDS_ANNOTATIONS =
-         Collections.unmodifiableList(Arrays.asList(Context.class.getName(), Property.class.getName()));
-      
+         Collections.unmodifiableList(Arrays.asList(Context.class.getName(), Property.class.getName(), Inject.class
+            .getName()));
+
       PROVIDER_CONSTRUCTOR_PARAMETER_ANNOTATIONS =
          Collections.unmodifiableList(Arrays.asList(Context.class.getName(), Property.class.getName()));
-      
+
       List<String> tmp1 = new ArrayList<String>(7);
       tmp1.add(CookieParam.class.getName());
       tmp1.add(Context.class.getName());
@@ -101,6 +103,7 @@ public class ParameterHelper
       tmp1.add(PathParam.class.getName());
       tmp1.add(QueryParam.class.getName());
       tmp1.add(Property.class.getName());
+      tmp1.add(Inject.class.getName());
       RESOURCE_FIELDS_ANNOTATIONS = Collections.unmodifiableList(tmp1);
       RESOURCE_CONSTRUCTOR_PARAMETER_ANNOTATIONS = Collections.unmodifiableList(tmp1);
 

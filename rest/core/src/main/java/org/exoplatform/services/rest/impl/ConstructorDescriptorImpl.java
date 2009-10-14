@@ -239,6 +239,8 @@ public class ConstructorDescriptorImpl implements ConstructorDescriptor
          }
          else
          {
+            // XXX need to use @Inject annotation here ??? 
+            
             // If parameter not has not annotation then get constructor parameter
             // from DependencyInjector, this is out of scope JAX-RS specification.
             

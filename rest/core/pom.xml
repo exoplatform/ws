@@ -33,10 +33,10 @@
    <name>eXo WS :: REST :: Core</name>
 
    <dependencies>
-      <dependency>
+      <!--dependency>
          <groupId>org.exoplatform.kernel</groupId>
          <artifactId>exo.kernel.component.common</artifactId>
-      </dependency>
+      </dependency-->
       <dependency>
          <groupId>org.exoplatform.core</groupId>
          <artifactId>exo.core.component.xml-processing</artifactId>

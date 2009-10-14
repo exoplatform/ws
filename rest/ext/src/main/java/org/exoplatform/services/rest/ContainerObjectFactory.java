@@ -22,13 +22,12 @@ import org.exoplatform.container.ExoContainerContext;
 
 /**
  * Factory provides object that is created and is manageable by
- * inversion-of-control container, PicoContainer.
+ * inversion-of-control container.
  * 
  * @param <T> any extension of {@link ObjectModel}
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  */
-@Deprecated
 public class ContainerObjectFactory<T extends ObjectModel> implements ObjectFactory<T>
 {
 

@@ -16,22 +16,33 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.exoplatform.services.rest;
+package org.exoplatform.services.rest.impl.method;
+
+import org.exoplatform.services.rest.ApplicationContext;
+import org.exoplatform.services.rest.Inject;
+import org.exoplatform.services.rest.Parameter;
 
 /**
- * Object scope identifier.
+ * @author <a href="mailto:andrey.parfonov@exoplatform.com">Andrey Parfonov</a>
+ * @version $Id$
  */
-public enum ComponentLifecycleScope {
+public class InjectableProvider extends ParameterResolver<Inject>
+{
+
+   InjectableProvider(Inject inject)
+   {
+   }
+
    /**
-    * New instance of object created foe each request.
+    * {@inheritDoc}
     */
-   PER_REQUEST,
-   /**
-    * Singleton lifecycle.
-    */
-   SINGLETON,
-   /**
-    * Inversion-of-control framework controls component's lifecycle.
-    */
-   IOC
+   @Override
+   public Object resolve(Parameter parameter, ApplicationContext context) throws Exception
+   {
+      if (context.getDependencyInjector() != null)
+         return context.getDependencyInjector().getInjectableParameter(parameter.getParameterClass(), null);
+
+      return null;
+   }
+
 }

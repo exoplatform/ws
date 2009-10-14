@@ -18,9 +18,6 @@
  */
 package org.exoplatform.services.rest.impl;
 
-import org.exoplatform.services.rest.GenericContainerResponse;
-import org.exoplatform.services.rest.Property;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Encoded;
 import javax.ws.rs.GET;
@@ -34,6 +31,10 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import org.exoplatform.services.rest.GenericContainerResponse;
+import org.exoplatform.services.rest.Inject;
+import org.exoplatform.services.rest.Property;
+
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
  * @version $Id: $
@@ -41,6 +42,21 @@ import javax.ws.rs.core.UriInfo;
 public class RequestDispatcherTest extends AbstractResourceTest
 {
 
+   public void setUp() throws Exception
+   {
+      binder = new BaseResourceBinder();
+      SimpleDependencyInjector depInjector = new SimpleDependencyInjector();
+      depInjector.put(InjectableComponent1.class, new InjectableComponent1());
+      depInjector.put(InjectableComponent2.class, new InjectableComponent2());
+
+      requestHandler = new RequestHandlerImpl(binder, depInjector);
+      requestHandler.init();
+      
+      // reset providers to be sure it is clean
+      ProviderBinder.setInstance(new ProviderBinder());
+      providers = ProviderBinder.getInstance();
+   }
+   
    @Path("/a")
    public static class Resource1
    {
@@ -102,7 +118,7 @@ public class RequestDispatcherTest extends AbstractResourceTest
       }
    }
 
-   public void testResource1() throws Exception
+   public void testSingletonResource() throws Exception
    {
       Resource1 r1 = new Resource1();
       registry(r1);
@@ -148,7 +164,7 @@ public class RequestDispatcherTest extends AbstractResourceTest
 
    }
 
-   public void testResource2() throws Exception
+   public void testSingletonResourceEncodedPath() throws Exception
    {
       Resource2 r2 = new Resource2();
       registry(r2);
@@ -214,7 +230,11 @@ public class RequestDispatcherTest extends AbstractResourceTest
    }
 
    //--------------------------------------
-   public static class TestContainerComponent
+   public static class InjectableComponent1
+   {
+   }
+
+   public static class InjectableComponent2
    {
    }
 
@@ -228,7 +248,10 @@ public class RequestDispatcherTest extends AbstractResourceTest
       @Context
       private HttpServletRequest request;
 
-      private TestContainerComponent tc;
+      private InjectableComponent1 ic1;
+      
+      @Inject
+      private InjectableComponent2 ic2;
 
       public Resource4(@PathParam("a") String test)
       {
@@ -237,34 +260,34 @@ public class RequestDispatcherTest extends AbstractResourceTest
          fail("Must not be used.");
       }
 
-      public Resource4(TestContainerComponent tc, @PathParam("a") String test)
+      public Resource4(InjectableComponent1 ic, @PathParam("a") String test)
       {
-         this.tc = tc;
+         this.ic1 = ic;
       }
 
       @GET
       @Path("{b}")
       public void m0()
       {
-         assertNotNull(tc);
+         assertNotNull(ic1);
+         assertNotNull(ic2);
          assertNotNull(uriInfo);
          assertNotNull(request);
       }
 
    }
 
-   public void testResourceConstructorsContainer() throws Exception
+   public void testResourceConstructorsDependencyInjection() throws Exception
    {
-//      container.registerComponentInstance(TestContainerComponent.class.getName(), new TestContainerComponent());
       registry(Resource4.class);
-      service("GET", "/aaa/bbb", "", null, null);
+      assertEquals(204, service("GET", "/aaa/bbb", "", null, null).getStatus());
       unregistry(Resource4.class);
    }
 
    // --------------------------------------
    public static class Failure
    {
-      // not member of exo-container
+      // may not be provided by DependencyInjector 
    }
 
    @Path("/_a/b/{c}/{d}")
@@ -283,7 +306,7 @@ public class RequestDispatcherTest extends AbstractResourceTest
       }
    }
 
-   public void testResourceConstructorFail() throws Exception
+   public void testResourceConstructorDependencyInjectionFail() throws Exception
    {
       registry(ResourceFail.class);
       GenericContainerResponse resp = service("GET", "/_a/b/c/d/m0", "", null, null);
@@ -292,6 +315,7 @@ public class RequestDispatcherTest extends AbstractResourceTest
       assertEquals(javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), resp.getStatus());
       unregistry(ResourceFail.class);
    }
+
    //--------------------------------------
 
    @Path("a/{b}/{c}")
@@ -324,7 +348,7 @@ public class RequestDispatcherTest extends AbstractResourceTest
 
    }
 
-   public void testResource5() throws Exception
+   public void testQuery() throws Exception
    {
       registry(Resource5.class);
       service("GET", "/a/b/c/d?q1=q1&q2=q2", "", null, null);
@@ -332,7 +356,7 @@ public class RequestDispatcherTest extends AbstractResourceTest
    }
 
    //--------------------------------------
-   
+
    public void testFieldSuperClass() throws Exception
    {
       registry(EndResource.class);
@@ -347,7 +371,7 @@ public class RequestDispatcherTest extends AbstractResourceTest
 
       @Context
       public Request request;
-      
+
       @Context
       protected UriInfo something;
    }
@@ -364,7 +388,7 @@ public class RequestDispatcherTest extends AbstractResourceTest
    {
       @Context
       private HttpHeaders header;
-      
+
       @Context
       private SecurityContext something;
 
@@ -381,9 +405,9 @@ public class RequestDispatcherTest extends AbstractResourceTest
          assertNotNull(header);
       }
    }
-   
+
    // -----------------------------------------------
-   
+
    public void testPropertyInjection() throws Exception
    {
       registry(Resource6.class);
@@ -391,30 +415,30 @@ public class RequestDispatcherTest extends AbstractResourceTest
       RequestHandlerImpl.setProperty("prop2", "test");
       service("GET", "/a", "", null, null);
       unregistry(Resource6.class);
-      
+
    }
 
    @Path("a")
    public static class Resource6
    {
-      
+
       @Property("prop1")
       private String prop1;
-      
+
       private final String prop2;
-      
+
       public Resource6(@Property("prop2") String cProp)
       {
          this.prop2 = cProp;
       }
-      
+
       @GET
       public void m1()
       {
          assertEquals("hello", prop1);
          assertEquals("test", prop2);
       }
-      
+
    }
-   
+
 }

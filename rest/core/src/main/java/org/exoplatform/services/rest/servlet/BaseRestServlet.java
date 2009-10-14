@@ -20,16 +20,10 @@ package org.exoplatform.services.rest.servlet;
 
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
-import org.exoplatform.services.rest.ContainerResponseWriter;
-import org.exoplatform.services.rest.GenericContainerResponse;
 import org.exoplatform.services.rest.RequestHandler;
 import org.exoplatform.services.rest.impl.ContainerResponse;
 import org.exoplatform.services.rest.impl.EnvironmentContext;
-import org.exoplatform.services.rest.impl.header.HeaderHelper;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.util.List;
-import java.util.Map;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -37,7 +31,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.ext.MessageBodyWriter;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
@@ -48,69 +41,7 @@ public class BaseRestServlet extends HttpServlet
 
    private static final long serialVersionUID = -8234561611241680339L;
 
-   /**
-    * See {@link ContainerResponseWriter}.
-    */
-   class ServletContainerResponseWriter implements ContainerResponseWriter
-   {
-
-      /**
-       * See {@link HttpServletResponse}.
-       */
-      private HttpServletResponse servletResponse;
-
-      /**
-       * @param response HttpServletResponse
-       */
-      ServletContainerResponseWriter(HttpServletResponse response)
-      {
-         this.servletResponse = response;
-      }
-
-      /**
-       * {@inheritDoc}
-       */
-      @SuppressWarnings("unchecked")
-      public void writeBody(GenericContainerResponse response, MessageBodyWriter entityWriter) throws IOException
-      {
-         Object entity = response.getEntity();
-         if (entity != null)
-         {
-            OutputStream out = servletResponse.getOutputStream();
-            entityWriter.writeTo(entity, entity.getClass(), response.getEntityType(), null, response.getContentType(),
-               response.getHttpHeaders(), out);
-            out.flush();
-         }
-      }
-
-      /**
-       * {@inheritDoc}
-       */
-      public void writeHeaders(GenericContainerResponse response) throws IOException
-      {
-         if (servletResponse.isCommitted())
-            return;
-
-         servletResponse.setStatus(response.getStatus());
-
-         if (response.getHttpHeaders() != null)
-         {
-            // content-type and content-length should be preset in headers
-            for (Map.Entry<String, List<Object>> e : response.getHttpHeaders().entrySet())
-            {
-               String name = e.getKey();
-               for (Object o : e.getValue())
-               {
-                  String value = null;
-                  if (o != null && (value = HeaderHelper.getHeaderAsString(o)) != null)
-                     servletResponse.addHeader(name, value);
-               }
-            }
-         }
-      }
-   }
-
-   private static final Log LOG = ExoLogger.getLogger(RestServlet.class.getName());
+   private static final Log LOG = ExoLogger.getLogger(BaseRestServlet.class.getName());
 
    private RequestHandler requestHandler;
 

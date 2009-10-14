@@ -18,12 +18,6 @@
  */
 package org.exoplatform.services.rest.impl.provider;
 
-import org.exoplatform.services.rest.generated.Book;
-import org.exoplatform.services.rest.generated.MemberPrice;
-import org.exoplatform.services.rest.generated.Price;
-import org.exoplatform.services.rest.impl.BaseTest;
-import org.exoplatform.services.rest.impl.MultivaluedMapImpl;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -42,6 +36,12 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
+import org.exoplatform.services.rest.generated.Book;
+import org.exoplatform.services.rest.generated.MemberPrice;
+import org.exoplatform.services.rest.generated.Price;
+import org.exoplatform.services.rest.impl.BaseTest;
+import org.exoplatform.services.rest.impl.MultivaluedMapImpl;
+
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
  * @version $Id: $
@@ -57,6 +57,7 @@ public class JAXBEntityProviderTest extends BaseTest
    public void setUp() throws Exception
    {
       super.setUp();
+      setContext();
       mediaType = new MediaType("application", "xml");
       data =
          ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + "<book send-by-post=\"true\">"

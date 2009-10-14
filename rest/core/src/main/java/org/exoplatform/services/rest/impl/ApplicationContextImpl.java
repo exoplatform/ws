@@ -159,6 +159,8 @@ public class ApplicationContextImpl implements ApplicationContext
     */
    private MultivaluedMap<String, String> queryParameters;
 
+   private DependencyInjector depInjector;
+
    /**
     * Constructs new instance of ApplicationContext.
     * 
@@ -250,10 +252,12 @@ public class ApplicationContextImpl implements ApplicationContext
       return response;
    }
 
+   /**
+    * {@inheritDoc}
+    */
    public DependencyInjector getDependencyInjector()
    {
-      // TODO Auto-generated method stub
-      return null;
+      return depInjector;
    }
 
    /**
@@ -477,10 +481,12 @@ public class ApplicationContextImpl implements ApplicationContext
       return this;
    }
 
+   /**
+    * {@inheritDoc}
+    */
    public void setDependencyInjector(DependencyInjector depInjector)
    {
-      // TODO Auto-generated method stub
-      
+      this.depInjector = depInjector;
    }
 
    /**

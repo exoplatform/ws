@@ -18,20 +18,21 @@
  */
 package org.exoplatform.services.rest;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
- * Object scope identifier.
+ * Used to annotate fields that should be injected with instances 
+ * provided by {@link DependencyInjector}. If DependencyInjector
+ * is not available than field will be not initialized
+
+ * @author <a href="mailto:andrey.parfonov@exoplatform.com">Andrey Parfonov</a>
+ * @version $Id$
  */
-public enum ComponentLifecycleScope {
-   /**
-    * New instance of object created foe each request.
-    */
-   PER_REQUEST,
-   /**
-    * Singleton lifecycle.
-    */
-   SINGLETON,
-   /**
-    * Inversion-of-control framework controls component's lifecycle.
-    */
-   IOC
+@Target(ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Inject {
+
 }
