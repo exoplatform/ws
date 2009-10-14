@@ -22,6 +22,8 @@ import org.exoplatform.services.rest.resource.AbstractResourceDescriptor;
 
 import java.util.List;
 
+import javax.ws.rs.core.Application;
+
 /**
  * Manages root resources.
  * 
@@ -30,6 +32,12 @@ import java.util.List;
  */
 public interface ResourceBinder
 {
+   /**
+    * @param application Application
+    * @see Application
+    */
+   void addApplication(Application application);
+
    /**
     * @param resourceClass class of candidate to be root resource
     * @return true if resource was bound and false if resource was not bound

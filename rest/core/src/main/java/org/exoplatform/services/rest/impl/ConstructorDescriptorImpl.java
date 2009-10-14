@@ -18,8 +18,6 @@
  */
 package org.exoplatform.services.rest.impl;
 
-import org.exoplatform.container.ExoContainer;
-import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.rest.ApplicationContext;
@@ -218,7 +216,6 @@ public class ConstructorDescriptorImpl implements ConstructorDescriptor
     */
    public Object createInstance(ApplicationContext context)
    {
-      ExoContainer container = ExoContainerContext.getCurrentContainer();
       Object[] p = new Object[parameters.size()];
       int i = 0;
       for (ConstructorParameter cp : parameters)
@@ -243,9 +240,19 @@ public class ConstructorDescriptorImpl implements ConstructorDescriptor
          else
          {
             // If parameter not has not annotation then get constructor parameter
-            // from container, this is out of scope JAX-RS specification.
-            Object tmp = container.getComponentInstanceOfType(cp.getParameterClass());
+            // from DependencyInjector, this is out of scope JAX-RS specification.
+            
+            if (context.getDependencyInjector() == null)
+            {
+               String msg =
+                  "Can't instantiate resource " + resourceClass
+                     + ". DependencyInjector not found, not able get required parameter " + cp;
+               LOG.error(msg);
+               throw new WebApplicationException(Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(msg)
+                  .type(MediaType.TEXT_PLAIN).build());
+            }
 
+            Object tmp = context.getDependencyInjector().getInjectableParameter(cp.getParameterClass(), null);
             if (tmp == null)
             {
                String msg =

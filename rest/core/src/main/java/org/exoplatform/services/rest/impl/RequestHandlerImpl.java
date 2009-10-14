@@ -116,12 +116,12 @@ public final class RequestHandlerImpl implements RequestHandler
    
    private final DependencyInjector depInjector;
    
-   public RequestHandlerImpl(DependencyInjector depInjector)
-   {
-      this.binder = new BaseResourceBinder();
-      this.dispatcher = new RequestDispatcher(binder);
-      this.depInjector = depInjector;
-   }
+//   public RequestHandlerImpl(DependencyInjector depInjector)
+//   {
+//      this.binder = new BaseResourceBinder();
+//      this.dispatcher = new RequestDispatcher(binder);
+//      this.depInjector = depInjector;
+//   }
    
    public RequestHandlerImpl(ResourceBinder binder, DependencyInjector depInjector)
    {

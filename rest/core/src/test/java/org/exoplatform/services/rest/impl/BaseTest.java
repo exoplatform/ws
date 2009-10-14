@@ -45,14 +45,14 @@ public abstract class BaseTest extends TestCase
    {
 //      StandaloneContainer.setConfigurationPath("src/test/java/conf/standalone/test-configuration.xml");
 //      container = StandaloneContainer.getInstance();
-
-      requestHandler = new RequestHandlerImpl(new SimpleDependencyInjector());
+      binder = new BaseResourceBinder();
+      requestHandler = new RequestHandlerImpl(binder, null/*new SimpleDependencyInjector()*/);
       requestHandler.init();
-      binder = (BaseResourceBinder)requestHandler.getBinder();
       
       // reset providers to be sure it is clean
       ProviderBinder.setInstance(new ProviderBinder());
       providers = ProviderBinder.getInstance();
+
       // Set-up context for tests that are not used full request cycle.
       // Usually context is set-up in RequestHandler
       ApplicationContextImpl.setCurrent(new ApplicationContextImpl(null, null, providers));

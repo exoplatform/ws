@@ -156,7 +156,6 @@ public class BaseResourceBinder implements ResourceBinder
     * @see Application
     */
    @SuppressWarnings("unchecked")
-   @Deprecated
    public void addApplication(Application application)
    {
       ProviderBinder providers = ProviderBinder.getInstance();

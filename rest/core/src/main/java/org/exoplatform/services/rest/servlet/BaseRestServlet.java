@@ -142,7 +142,7 @@ public class BaseRestServlet extends HttpServlet
          EnvironmentContext.setCurrent(env);
          ServletContainerRequest request = new ServletContainerRequest(httpRequest);
          ContainerResponse response = new ContainerResponse(new ServletContainerResponseWriter(httpResponse));
-         requestHandler.handleRequest(request, response);
+         getRequestHandler().handleRequest(request, response);
       }
       catch (Exception e)
       {
