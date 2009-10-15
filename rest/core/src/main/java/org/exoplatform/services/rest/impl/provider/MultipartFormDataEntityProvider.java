@@ -47,7 +47,7 @@ import javax.ws.rs.ext.Provider;
  * Processing multipart data based on apache fileupload.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  */
 @Provider
 @Consumes({"multipart/*"})

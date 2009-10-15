@@ -72,7 +72,7 @@ import javax.ws.rs.ext.Providers;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  */
 public class ProviderBinder implements Providers
 {
@@ -178,7 +178,7 @@ public class ProviderBinder implements Providers
       addMessageBodyReader(MultipartFormDataEntityProvider.class);
 
       // JAXB context
-      addContextResolver(JAXBContextResolver.class);
+      addContextResolver(new JAXBContextResolver());
 
    }
 

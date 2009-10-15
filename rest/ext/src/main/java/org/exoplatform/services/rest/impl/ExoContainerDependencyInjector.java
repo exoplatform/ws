@@ -16,52 +16,28 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.exoplatform.services.rest.impl.header;
+package org.exoplatform.services.rest.impl;
 
-import org.exoplatform.services.rest.header.QualityValue;
+import java.lang.reflect.Type;
+
+import org.exoplatform.container.ExoContainer;
+import org.exoplatform.container.ExoContainerContext;
+import org.exoplatform.services.rest.DependencyInjector;
 
 /**
- * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
+ * @author <a href="mailto:andrey.parfonov@exoplatform.com">Andrey Parfonov</a>
  * @version $Id$
  */
-public class AcceptToken extends Token implements QualityValue
+public class ExoContainerDependencyInjector implements DependencyInjector
 {
-
-   /**
-    * Quality value factor.
-    */
-   private final float qValue;
-
-   /**
-    * Create AcceptToken with default quality value 1.0 .
-    * 
-    * @param token a token
-    */
-   public AcceptToken(String token)
-   {
-      super(token);
-      qValue = DEFAULT_QUALITY_VALUE;
-   }
-
-   /**
-    * Create AcceptToken with specified quality value.
-    * @param token a token
-    * @param qValue a quality value
-    */
-   public AcceptToken(String token, float qValue)
-   {
-      super(token);
-      this.qValue = qValue;
-   }
-
-   // QualityValue
 
    /**
     * {@inheritDoc}
     */
-   public float getQvalue()
+   public Object getInjectableParameter(Class<?> type, Type genericType)
    {
-      return qValue;
+      ExoContainer container = ExoContainerContext.getCurrentContainer();
+      return container.getComponentInstanceOfType(type);
    }
 
 }

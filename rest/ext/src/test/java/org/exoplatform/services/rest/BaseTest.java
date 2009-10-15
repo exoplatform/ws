@@ -16,38 +16,25 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.exoplatform.services.rest.tools;
+package org.exoplatform.services.rest;
 
-import org.exoplatform.services.rest.ContainerResponseWriter;
-import org.exoplatform.services.rest.GenericContainerResponse;
+import org.exoplatform.container.StandaloneContainer;
 
-import java.io.IOException;
-
-import javax.ws.rs.ext.MessageBodyWriter;
+import junit.framework.TestCase;
 
 /**
- * Mock object than can be used for any test when we don't care about response
- * entity at all.
- * 
- * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
+ * @author <a href="mailto:andrey.parfonov@exoplatform.com">Andrey Parfonov</a>
  * @version $Id$
  */
-public class DummyContainerResponseWriter implements ContainerResponseWriter
+public abstract class BaseTest extends TestCase
 {
 
-   /**
-    * {@inheritDoc}
-    */
-   @SuppressWarnings("unchecked")
-   public void writeBody(GenericContainerResponse response, MessageBodyWriter entityWriter) throws IOException
-   {
-   }
+   protected StandaloneContainer container;
 
-   /**
-    * {@inheritDoc}
-    */
-   public void writeHeaders(GenericContainerResponse response) throws IOException
+   public void setUp() throws Exception
    {
+      StandaloneContainer.setConfigurationPath("src/test/java/conf/standalone/test-configuration.xml");
+      container = StandaloneContainer.getInstance();
    }
-
+   
 }

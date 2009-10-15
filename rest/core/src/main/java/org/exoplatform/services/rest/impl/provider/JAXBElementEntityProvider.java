@@ -46,7 +46,7 @@ import javax.xml.transform.stream.StreamSource;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  */
 @Provider
 @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
@@ -151,7 +151,7 @@ public class JAXBElementEntityProvider implements EntityProvider<JAXBElement<?>>
          providers.getContextResolver(JAXBContextResolver.class, mediaType);
       if (resolver == null)
          throw new RuntimeException("Not found any JAXBContextResolver for media type " + mediaType);
-      JAXBContextResolver jaxbres = resolver.getContext(type);
+      JAXBContextResolver jaxbres = resolver.getContext(null);
       return jaxbres.getJAXBContext(type);
    }
 

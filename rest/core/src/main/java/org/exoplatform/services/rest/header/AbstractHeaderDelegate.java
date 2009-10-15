@@ -22,7 +22,7 @@ import javax.ws.rs.ext.RuntimeDelegate.HeaderDelegate;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  * @param <T> Java type for representing HTTP header
  */
 public abstract class AbstractHeaderDelegate<T> implements HeaderDelegate<T>

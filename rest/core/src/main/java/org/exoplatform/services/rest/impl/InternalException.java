@@ -24,7 +24,7 @@ package org.exoplatform.services.rest.impl;
  * used as wrapper for exception that may occur during request processing.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  */
 public class InternalException extends RuntimeException
 {

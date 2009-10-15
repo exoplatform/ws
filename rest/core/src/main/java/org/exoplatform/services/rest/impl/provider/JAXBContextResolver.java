@@ -18,12 +18,6 @@
  */
 package org.exoplatform.services.rest.impl.provider;
 
-import org.exoplatform.container.component.ComponentPlugin;
-import org.exoplatform.services.log.ExoLogger;
-import org.exoplatform.services.log.Log;
-import org.exoplatform.services.rest.impl.header.MediaTypeHelper;
-
-import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.ws.rs.Consumes;
@@ -34,22 +28,19 @@ import javax.ws.rs.ext.Provider;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
+import org.exoplatform.services.rest.impl.header.MediaTypeHelper;
+
 /**
  * Provide cache for {@link JAXBContext}.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  */
 @Provider
 @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
 @Produces({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML, MediaTypeHelper.WADL})
 public class JAXBContextResolver implements ContextResolver<JAXBContextResolver>
 {
-
-   /**
-    * Logger.
-    */
-   private static final Log LOG = ExoLogger.getLogger(JAXBContextResolver.class.getName());
 
    /**
     * JAXBContext cache.
@@ -109,28 +100,6 @@ public class JAXBContextResolver implements ContextResolver<JAXBContextResolver>
    public void addJAXBContext(JAXBContext jaxbctx, Class<?> clazz)
    {
       jaxbContexts.put(clazz, jaxbctx);
-   }
-
-   /**
-    * @param plugin for injection prepared JAXBContext at startup
-    */
-   public void addPlugin(ComponentPlugin plugin)
-   {
-      if (plugin instanceof JAXBContextComponentPlugin)
-      {
-         for (Iterator<Class<?>> i = ((JAXBContextComponentPlugin)plugin).getJAXBContexts().iterator(); i.hasNext();)
-         {
-            Class<?> c = i.next();
-            try
-            {
-               createJAXBContext(c);
-            }
-            catch (JAXBException e)
-            {
-               LOG.error("Failed add JAXBContext for class " + c.getName(), e);
-            }
-         }
-      }
    }
 
 }

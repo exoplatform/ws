@@ -100,14 +100,12 @@ public class BaseResourceBinder implements ResourceBinder
 
    private int size = 0;
 
-   /**
-    * @see RuntimeDelegate
-    */
-   private final RuntimeDelegate rd;
-
    public BaseResourceBinder()
    {
-      rd = new RuntimeDelegateImpl();
+      // Initialize RuntimeDelegate instance
+      // This is first component in life cycle what needs.
+      // TODO better solution to initialize RuntimeDelegate
+      RuntimeDelegate rd = new RuntimeDelegateImpl();
       RuntimeDelegate.setInstance(rd);
    }
    

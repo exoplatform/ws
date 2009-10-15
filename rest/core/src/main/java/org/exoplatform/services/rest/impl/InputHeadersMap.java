@@ -34,7 +34,7 @@ import javax.ws.rs.core.MultivaluedMap;
  * Read only case insensitive {@link MultivaluedMap}.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  */
 // TODO this implementation is not efficient, probably can be better extend
 // java.util.AbstractMap

@@ -24,7 +24,7 @@ import java.util.TreeMap;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  */
 public class SubResourceMethodMap extends TreeMap<UriPattern, ResourceMethodMap<SubResourceMethodDescriptor>>
 {

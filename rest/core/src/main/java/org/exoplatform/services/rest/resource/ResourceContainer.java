@@ -22,7 +22,7 @@ package org.exoplatform.services.rest.resource;
  * Abstraction of REST resource.
  * 
  * @author Gennady Azarenkov
- * @version $Id: $
+ * @version $Id$
  */
 public interface ResourceContainer
 {

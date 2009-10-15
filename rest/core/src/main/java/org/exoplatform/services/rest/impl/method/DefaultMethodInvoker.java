@@ -46,7 +46,7 @@ import javax.ws.rs.ext.MessageBodyReader;
  * Invoker for Resource Method, Sub-Resource Method and SubResource Locator.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  */
 public final class DefaultMethodInvoker implements MethodInvoker
 {

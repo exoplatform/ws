@@ -20,7 +20,7 @@ package org.exoplatform.services.rest.impl;
 
 import junit.framework.TestCase;
 
-import org.exoplatform.container.StandaloneContainer;
+//import org.exoplatform.container.StandaloneContainer;
 import org.exoplatform.services.rest.impl.ApplicationContextImpl;
 import org.exoplatform.services.rest.impl.BaseResourceBinder;
 import org.exoplatform.services.rest.impl.ProviderBinder;

@@ -26,7 +26,7 @@ import javax.ws.rs.core.MultivaluedMap;
  * Abstraction for single (not for collections) types.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  */
 public abstract class BaseTypeProducer implements TypeProducer
 {

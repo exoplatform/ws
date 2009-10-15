@@ -36,7 +36,7 @@ import java.lang.annotation.Target;
  * @see ResponseFilter
  * @see MethodInvokerFilter
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

@@ -16,47 +16,46 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.exoplatform.services.rest.impl;
+package org.exoplatform.services.rest.ext.method;
 
 import org.exoplatform.container.component.BaseComponentPlugin;
 import org.exoplatform.container.xml.InitParams;
 import org.exoplatform.container.xml.ValueParam;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
-import org.exoplatform.services.rest.RequestFilter;
 import org.exoplatform.services.rest.RequestHandler;
+import org.exoplatform.services.rest.method.MethodInvokerFilter;
 
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
 /**
- * For injection {@link RequestFilter} in {@link RequestHandler} at startup.
+ * For injection {@link MethodInvokerFilter} in {@link RequestHandler} at
+ * startup.
  * 
- * @see RequestHandlerImpl
- * @see RequestFilter
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
  * @version $Id: $
  */
-public class RequestFilterComponentPlugin extends BaseComponentPlugin
+public class MethodInvokerFilterComponentPlugin extends BaseComponentPlugin
 {
 
    /**
     * Logger.
     */
-   private static final Log LOG = ExoLogger.getLogger(RequestFilterComponentPlugin.class.getName());
+   private static final Log LOG = ExoLogger.getLogger(MethodInvokerFilterComponentPlugin.class.getName());
 
    /**
-    * See {@link RequestFilter}.
+    * List of {@link MethodInvokerFilter}.
     */
-   private Set<Class<? extends RequestFilter>> fs = new HashSet<Class<? extends RequestFilter>>();
+   private Set<Class<? extends MethodInvokerFilter>> mifs = new HashSet<Class<? extends MethodInvokerFilter>>();
 
    /**
-    * @param params initialize parameters from configuration.
+    * @param params initialize parameters from configuration
     * @see InitParams
     */
    @SuppressWarnings("unchecked")
-   public RequestFilterComponentPlugin(InitParams params)
+   public MethodInvokerFilterComponentPlugin(InitParams params)
    {
       if (params != null)
       {
@@ -66,7 +65,7 @@ public class RequestFilterComponentPlugin extends BaseComponentPlugin
             ValueParam v = i.next();
             try
             {
-               fs.add((Class<? extends RequestFilter>)Class.forName(v.getValue()));
+               mifs.add((Class<? extends MethodInvokerFilter>)Class.forName(v.getValue()));
             }
             catch (ClassNotFoundException e)
             {
@@ -77,11 +76,12 @@ public class RequestFilterComponentPlugin extends BaseComponentPlugin
    }
 
    /**
-    * @return Collection of classes RequestFilter supplied in configuration.
+    * @return get collection of classes MethodInvokerFilter supplied from
+    *         configuration
     */
-   public Set<Class<? extends RequestFilter>> getFilters()
+   public Set<Class<? extends MethodInvokerFilter>> getFilters()
    {
-      return fs;
+      return mifs;
    }
 
 }

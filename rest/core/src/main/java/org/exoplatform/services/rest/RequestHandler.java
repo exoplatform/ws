@@ -23,7 +23,7 @@ package org.exoplatform.services.rest;
  * control main components of JAX-RS implementation.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  */
 public interface RequestHandler
 {
@@ -44,6 +44,13 @@ public interface RequestHandler
     * Max buffer size attribute value. See {@link WS_RS_BUFFER_SIZE}.
     */
    public static final int WS_RS_BUFFER_SIZE_VALUE = 204800;
+
+   /**
+    * Get {@link ResourceBinder}.
+    * 
+    * @return ResourceBinder
+    */
+   ResourceBinder getResourceBinder();
 
    /**
     * Handle the HTTP request by dispatching request to appropriate resource. If

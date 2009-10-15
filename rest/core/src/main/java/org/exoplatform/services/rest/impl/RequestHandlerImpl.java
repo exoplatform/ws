@@ -45,7 +45,7 @@ import org.exoplatform.services.rest.ResponseFilter;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  */
 public final class RequestHandlerImpl implements RequestHandler
 {
@@ -116,13 +116,6 @@ public final class RequestHandlerImpl implements RequestHandler
    
    private final DependencyInjector depInjector;
    
-//   public RequestHandlerImpl(DependencyInjector depInjector)
-//   {
-//      this.binder = new BaseResourceBinder();
-//      this.dispatcher = new RequestDispatcher(binder);
-//      this.depInjector = depInjector;
-//   }
-   
    public RequestHandlerImpl(ResourceBinder binder, DependencyInjector depInjector)
    {
       this.binder = binder;
@@ -130,7 +123,10 @@ public final class RequestHandlerImpl implements RequestHandler
       this.depInjector = depInjector;
    }
 
-   public ResourceBinder getBinder()
+   /**
+    * {@inheritDoc}
+    */
+   public ResourceBinder getResourceBinder()
    {
       return binder;
    }

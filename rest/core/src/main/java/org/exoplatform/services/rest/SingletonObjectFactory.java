@@ -22,7 +22,7 @@ package org.exoplatform.services.rest;
  * Provide object instance of components that support singleton lifecycle.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  * @param <T>
  */
 public class SingletonObjectFactory<T extends ObjectModel> implements ObjectFactory<T>

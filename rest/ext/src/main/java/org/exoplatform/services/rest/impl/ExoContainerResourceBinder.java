@@ -27,9 +27,7 @@ import org.exoplatform.container.ExoContainer;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
-import org.exoplatform.services.rest.impl.resource.ResourceDescriptorValidator;
 import org.exoplatform.services.rest.resource.ResourceContainer;
-import org.exoplatform.services.rest.resource.ResourceDescriptorVisitor;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
@@ -44,39 +42,18 @@ public class ExoContainerResourceBinder extends BaseResourceBinder
    private static final Log LOG = ExoLogger.getLogger(ExoContainerResourceBinder.class.getName());
 
    /**
-    * Validator.
-    */
-   private final ResourceDescriptorVisitor rdv = ResourceDescriptorValidator.getInstance();
-
-   /**
-    * @see RuntimeDelegate
-    */
-   private final RuntimeDelegate rd;
-
-   public ExoContainerResourceBinder()
-   {
-      rd = new RuntimeDelegateImpl();
-      RuntimeDelegate.setInstance(rd);
-   }
-   
-   /**
     * @param containerContext eXo container context
     * @throws Exception if can't set instance of {@link RuntimeDelegate}
     */
    @SuppressWarnings("unchecked")
    public ExoContainerResourceBinder(ExoContainerContext containerContext) throws Exception
    {
-      // Initialize RuntimeDelegate instance
-      // This is first component in life cycle what needs.
-      // TODO better solution to initialize RuntimeDelegate
-      rd = new RuntimeDelegateImpl();
-      RuntimeDelegate.setInstance(rd);
-
+      super();
       ExoContainer container = containerContext.getContainer();
 
       // Lookup Applications
-      List<Application> al = container.getComponentInstancesOfType(Application.class);
-      for (Application a : al)
+      List<Application> applications = container.getComponentInstancesOfType(Application.class);
+      for (Application a : applications)
       {
          try
          {

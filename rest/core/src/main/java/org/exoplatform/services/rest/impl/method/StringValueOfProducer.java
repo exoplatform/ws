@@ -22,7 +22,7 @@ import java.lang.reflect.Method;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  */
 public final class StringValueOfProducer extends BaseTypeProducer
 {

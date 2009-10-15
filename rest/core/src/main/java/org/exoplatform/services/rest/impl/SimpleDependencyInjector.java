@@ -25,7 +25,7 @@ import java.util.HashMap;
 
 /**
  * @author <a href="mailto:andrey.parfonov@exoplatform.com">Andrey Parfonov</a>
- * @version $Id: SimpleDependencyInjector.java 275 2009-10-13 16:17:02Z aparfonov $
+ * @version $Id$
  */
 public class SimpleDependencyInjector extends HashMap<Class<?>, Object> implements DependencyInjector
 {

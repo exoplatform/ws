@@ -31,7 +31,7 @@ import org.exoplatform.services.rest.uri.UriPattern;
  * @see ResponseFilter
  * @see MethodInvokerFilter
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  */
 public interface FilterDescriptor extends ResourceDescriptor, ObjectModel
 {
