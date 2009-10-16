@@ -66,7 +66,7 @@ public class BaseRestServlet extends HttpServlet
       env.put(HttpServletRequest.class, httpRequest);
       env.put(HttpServletResponse.class, httpResponse);
       env.put(ServletConfig.class, servletConfig);
-      env.put(ServletContext.class, getServletContext());
+      env.put(ServletContext.class, servletConfig.getServletContext());
 
       try
       {
