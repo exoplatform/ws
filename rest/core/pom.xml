@@ -75,6 +75,10 @@
          <groupId>javax.mail</groupId>
          <artifactId>mail</artifactId>
       </dependency>
+      <dependency>
+         <groupId>net.sf.scannotation</groupId>
+         <artifactId>scannotation</artifactId>
+      </dependency>      
    </dependencies>
 
    <build>
