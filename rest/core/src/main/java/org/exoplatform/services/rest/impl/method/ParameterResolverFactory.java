@@ -28,7 +28,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 
-import org.exoplatform.services.rest.Inject;
 import org.exoplatform.services.rest.Property;
 
 /**
@@ -71,8 +70,8 @@ public final class ParameterResolverFactory
          return new QueryParameterResolver((QueryParam)annotation);
       if (clazz == Property.class)
          return new PropertyResolver((Property)annotation);
-      if (clazz == Inject.class)
-         return new InjectableProvider((Inject)annotation);
+//      if (clazz == Inject.class)
+//         return new InjectableProvider((Inject)annotation);
       return null;
    }
 

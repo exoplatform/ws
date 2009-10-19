@@ -18,26 +18,26 @@
  */
 package org.exoplatform.services.rest.impl;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.ContextResolver;
-import javax.xml.bind.JAXBException;
-
+import org.exoplatform.container.ExoContainer;
+import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.xml.InitParams;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
-import org.exoplatform.services.rest.RequestFilter;
-import org.exoplatform.services.rest.RequestHandler;
-import org.exoplatform.services.rest.ResponseFilter;
-import org.exoplatform.services.rest.impl.provider.JAXBContextResolver;
-import org.exoplatform.services.rest.method.MethodInvokerFilter;
-import org.exoplatform.services.rest.provider.EntityProvider;
+import org.exoplatform.services.rest.DependencySupplier;
+import org.exoplatform.services.rest.Parameter;
+import org.exoplatform.services.rest.ResourceBinder;
+import org.exoplatform.services.rest.resource.ResourceContainer;
 import org.picocontainer.Startable;
+
+import java.util.List;
+
+import javax.ws.rs.core.Application;
 
 /**
  * @author <a href="mailto:andrey.parfonov@exoplatform.com">Andrey Parfonov</a>
  * @version $Id$
  */
-public class RestInitializer implements Startable
+public class RestInitializer extends ApplicationDeployer implements DependencySupplier, Startable
 {
 
    /**
@@ -46,18 +46,17 @@ public class RestInitializer implements Startable
    private static final Log LOG = ExoLogger.getLogger(RestInitializer.class.getName());
 
    @SuppressWarnings("unchecked")
-   public RestInitializer(RequestHandler requestHandler, InitParams initParams)
+   public RestInitializer(ResourceBinder resources, InitParams initParams, ExoContainerContext containerContext)
    {
-
-      ProviderBinder providers = ProviderBinder.getInstance();
-
+      super(resources, ProviderBinder.getInstance());
+      ExoContainer container = containerContext.getContainer();
       if (initParams != null)
       {
-         for (Object cl : initParams.getValuesParam("ws.rs.request.filter").getValues())
+         for (Object cl : initParams.getValuesParam("ws.rest.components").getValues())
          {
             try
             {
-               providers.addRequestFilter((Class<? extends RequestFilter>)Class.forName((String)cl));
+               deploy(Class.forName((String)cl));
             }
             catch (ClassNotFoundException e)
             {
@@ -65,67 +64,20 @@ public class RestInitializer implements Startable
             }
          }
       }
-      for (Object cl : initParams.getValuesParam("ws.rs.response.filter").getValues())
+      List<Application> applications = container.getComponentInstancesOfType(Application.class);
+      for (Application a : applications)
       {
-         try
-         {
-            providers.addResponseFilter((Class<? extends ResponseFilter>)Class.forName((String)cl));
-         }
-         catch (ClassNotFoundException e)
-         {
-            LOG.error("Failed load class " + cl, e);
-         }
+         deploy(a);
       }
-      for (Object cl : initParams.getValuesParam("ws.rs.method.filter").getValues())
+      for (Object resource : container.getComponentInstancesOfType(ResourceContainer.class))
       {
-         try
-         {
-            providers.addMethodInvokerFilter((Class<? extends MethodInvokerFilter>)Class.forName((String)cl));
-         }
-         catch (ClassNotFoundException e)
-         {
-            LOG.error("Failed load class " + cl, e);
-         }
+         deploy(resource);
       }
-      for (Object cl : initParams.getValuesParam("ws.rs.entity.provider").getValues())
-      {
-         try
-         {
-            Class<? extends EntityProvider> prov = (Class<? extends EntityProvider>)Class.forName((String)cl);
-            providers.addMessageBodyReader(prov);
-            providers.addMessageBodyWriter(prov);
-         }
-         catch (ClassNotFoundException e)
-         {
-            LOG.error("Failed load class " + cl, e);
-         }
-      }
-      for (Object cl : initParams.getValuesParam("ws.rs.jaxb.context").getValues())
-      {
-         try
-         {
-            ContextResolver<JAXBContextResolver> resolver =
-               providers.getContextResolver(JAXBContextResolver.class, MediaType.WILDCARD_TYPE);
-            if (resolver == null)
-            {
-               LOG.error("Not found JAXBContextResolver.");
-            }
-            else
-            {
-               JAXBContextResolver contextResolver = resolver.getContext(null);
-               contextResolver.createJAXBContext((Class<?>)Class.forName((String)cl));
-            }
-         }
-         catch (ClassNotFoundException e)
-         {
-            LOG.error("Failed load class " + cl, e);
-         }
-         catch (JAXBException jaxbe)
-         {
-            LOG.error("Failed add JAXBContext for class " + cl, jaxbe);
-         }
-      }
-      
+   }
+
+   public Object getInstanceOfType(Parameter parameter)
+   {
+      return null;
    }
 
    public void start()

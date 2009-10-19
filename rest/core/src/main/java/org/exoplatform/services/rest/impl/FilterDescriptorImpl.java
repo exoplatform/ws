@@ -68,27 +68,11 @@ public class FilterDescriptorImpl implements FilterDescriptor
    private final List<FieldInjector> fields;
 
    /**
-    * @param filterClass {@link Class} of filter
-    */
-   public FilterDescriptorImpl(Class<?> filterClass)
-   {
-      this(filterClass, ComponentLifecycleScope.PER_REQUEST);
-   }
-
-   /**
-    * @param filter instance
-    */
-   public FilterDescriptorImpl(Object filter)
-   {
-      this(filter.getClass(), ComponentLifecycleScope.SINGLETON);
-   }
-
-   /**
     * @param filterClass filter class
     * @param scope filter scope
     * @see ComponentLifecycleScope
     */
-   private FilterDescriptorImpl(Class<?> filterClass, ComponentLifecycleScope scope)
+   public FilterDescriptorImpl(Class<?> filterClass, ComponentLifecycleScope scope)
    {
       final Path p = filterClass.getAnnotation(Path.class);
       if (p != null)

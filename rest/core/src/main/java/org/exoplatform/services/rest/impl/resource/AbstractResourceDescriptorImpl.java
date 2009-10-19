@@ -133,20 +133,9 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
     * 
     * @param resourceClass resource class
     */
-   public AbstractResourceDescriptorImpl(Class<?> resourceClass)
+   public AbstractResourceDescriptorImpl(Class<?> resourceClass, ComponentLifecycleScope scope)
    {
-      this(resourceClass.getAnnotation(Path.class), resourceClass, ComponentLifecycleScope.PER_REQUEST);
-   }
-
-   /**
-    * Constructs new instance of AbstractResourceDescriptor without path
-    * (sub-resource).
-    * 
-    * @param resource resource instance
-    */
-   public AbstractResourceDescriptorImpl(Object resource)
-   {
-      this(resource.getClass().getAnnotation(Path.class), resource.getClass(), ComponentLifecycleScope.SINGLETON);
+      this(resourceClass.getAnnotation(Path.class), resourceClass, scope);
    }
 
    /**

@@ -40,7 +40,7 @@ public class InjectableProvider extends ParameterResolver<Inject>
    public Object resolve(Parameter parameter, ApplicationContext context) throws Exception
    {
       if (context.getDependencyInjector() != null)
-         return context.getDependencyInjector().getInjectableParameter(parameter.getParameterClass(), null);
+         return context.getDependencyInjector().getInstanceOfType(parameter);
 
       return null;
    }

@@ -44,15 +44,15 @@ public class ResourceBinderTest extends BaseTest
 
    public void testBind()
    {
-      binder.bind(Resource.class);
-      assertEquals(1, binder.getSize());
+      resources.bind(Resource.class);
+      assertEquals(1, resources.getSize());
    }
 
    public void testUnbind()
    {
-      binder.bind(Resource.class);
-      binder.unbind(Resource.class);
-      assertEquals(0, binder.getSize());
+      resources.bind(Resource.class);
+      resources.unbind(Resource.class);
+      assertEquals(0, resources.getSize());
    }
 
    @Path("/a/b/{c}")
@@ -94,25 +94,25 @@ public class ResourceBinderTest extends BaseTest
 
    public void testSameResourceURI()
    {
-      assertTrue(binder.bind(SameURIResource1.class));
-      assertEquals(1, binder.getSize());
-      assertFalse(binder.bind(SameURIResource2.class));
-      assertEquals(1, binder.getSize());
-      binder.clear();
-      assertTrue(binder.bind(SameURIResource2.class));
-      assertEquals(1, binder.getSize());
-      assertFalse(binder.bind(SameURIResource1.class));
-      assertEquals(1, binder.getSize());
-      binder.clear();
-      assertTrue(binder.bind(new SameURIResource1()));
-      assertEquals(1, binder.getSize());
-      assertFalse(binder.bind(new SameURIResource2()));
-      assertEquals(1, binder.getSize());
-      binder.clear();
-      assertTrue(binder.bind(new SameURIResource2()));
-      assertEquals(1, binder.getSize());
-      assertFalse(binder.bind(new SameURIResource1()));
-      assertEquals(1, binder.getSize());
+      assertTrue(resources.bind(SameURIResource1.class));
+      assertEquals(1, resources.getSize());
+      assertFalse(resources.bind(SameURIResource2.class));
+      assertEquals(1, resources.getSize());
+      resources.clear();
+      assertTrue(resources.bind(SameURIResource2.class));
+      assertEquals(1, resources.getSize());
+      assertFalse(resources.bind(SameURIResource1.class));
+      assertEquals(1, resources.getSize());
+      resources.clear();
+      assertTrue(resources.bind(new SameURIResource1()));
+      assertEquals(1, resources.getSize());
+      assertFalse(resources.bind(new SameURIResource2()));
+      assertEquals(1, resources.getSize());
+      resources.clear();
+      assertTrue(resources.bind(new SameURIResource2()));
+      assertEquals(1, resources.getSize());
+      assertFalse(resources.bind(new SameURIResource1()));
+      assertEquals(1, resources.getSize());
    }
 
    @Path("/a/b/c/{d}/e")

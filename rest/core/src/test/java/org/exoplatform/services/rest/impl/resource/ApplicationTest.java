@@ -24,6 +24,7 @@ import org.exoplatform.services.rest.GenericContainerResponse;
 import org.exoplatform.services.rest.RequestFilter;
 import org.exoplatform.services.rest.ResponseFilter;
 import org.exoplatform.services.rest.impl.AbstractResourceTest;
+import org.exoplatform.services.rest.impl.ApplicationDeployer;
 import org.exoplatform.services.rest.impl.ContainerResponse;
 import org.exoplatform.services.rest.method.MethodInvokerFilter;
 import org.exoplatform.services.rest.resource.GenericMethodResource;
@@ -187,8 +188,9 @@ public class ApplicationTest extends AbstractResourceTest
 
    public void testRegistry()
    {
-      binder.addApplication(new Application1());
-      assertEquals(4, binder.getSize());
+      ApplicationDeployer deployer = new ApplicationDeployer(resources, providers);
+      deployer.deploy(new Application1());
+      assertEquals(4, resources.getSize());
       assertEquals(1, providers.getRequestFilters(null).size());
       assertEquals(1, providers.getResponseFilters(null).size());
       assertEquals(1, providers.getMethodInvokerFilters(null).size());
@@ -202,7 +204,8 @@ public class ApplicationTest extends AbstractResourceTest
    
    public void testAsResources() throws Exception
    {
-      binder.addApplication(new Application1());
+      ApplicationDeployer deployer = new ApplicationDeployer(resources, providers);
+      deployer.deploy(new Application1());
       // per-request
       ContainerResponse resp = service("GET", "/a", "", null, null);
       assertEquals(200, resp.getStatus());

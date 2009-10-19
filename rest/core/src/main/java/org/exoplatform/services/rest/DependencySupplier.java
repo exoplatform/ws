@@ -18,48 +18,23 @@
  */
 package org.exoplatform.services.rest;
 
-import org.exoplatform.container.ExoContainerContext;
-
 /**
- * Factory provides object that is created and is manageable by
- * inversion-of-control container.
- * 
- * @param <T> any extension of {@link ObjectModel}
- * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
+ * Implementation of DependencySupplier should be able to provide
+ * objects that required for constructors or fields of Resource or Provider.
+ *  
+ * @author <a href="mailto:andrey.parfonov@exoplatform.com">Andrey Parfonov</a>
  * @version $Id$
  */
-public class ContainerObjectFactory<T extends ObjectModel> implements ObjectFactory<T>
+public interface DependencySupplier
 {
 
    /**
-    * Object model.
+    * Get object of <code>type</code>.
+    * 
+    * @param parameter required parameter description
+    * @return object of required type or null if instance described by
+    *           <code>parameter</code> may not be produced
     */
-   protected final T model;
-
-   /**
-    * @param model object model
-    * @see ObjectModel
-    */
-   public ContainerObjectFactory(T model)
-   {
-      this.model = model;
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public Object getInstance(ApplicationContext context)
-   {
-      Class<?> clazz = model.getObjectClass();
-      return ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(clazz);
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public T getObjectModel()
-   {
-      return model;
-   }
-
+   Object getInstanceOfType(Parameter parameter);
+   
 }

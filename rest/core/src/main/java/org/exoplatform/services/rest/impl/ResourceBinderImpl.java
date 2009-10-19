@@ -20,16 +20,13 @@ package org.exoplatform.services.rest.impl;
 
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
-import org.exoplatform.services.rest.Filter;
+import org.exoplatform.services.rest.ComponentLifecycleScope;
 import org.exoplatform.services.rest.ObjectFactory;
 import org.exoplatform.services.rest.PerRequestObjectFactory;
-import org.exoplatform.services.rest.RequestFilter;
 import org.exoplatform.services.rest.ResourceBinder;
-import org.exoplatform.services.rest.ResponseFilter;
 import org.exoplatform.services.rest.SingletonObjectFactory;
 import org.exoplatform.services.rest.impl.resource.AbstractResourceDescriptorImpl;
 import org.exoplatform.services.rest.impl.resource.ResourceDescriptorValidator;
-import org.exoplatform.services.rest.method.MethodInvokerFilter;
 import org.exoplatform.services.rest.resource.AbstractResourceDescriptor;
 import org.exoplatform.services.rest.resource.ResourceDescriptorVisitor;
 import org.exoplatform.services.rest.uri.UriPattern;
@@ -41,25 +38,19 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.ws.rs.Path;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.ExceptionMapper;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.MessageBodyWriter;
-import javax.ws.rs.ext.Provider;
 import javax.ws.rs.ext.RuntimeDelegate;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
  * @version $Id$
  */
-public class BaseResourceBinder implements ResourceBinder
+public class ResourceBinderImpl implements ResourceBinder
 {
 
    /**
     * Logger.
     */
-   private static final Log LOG = ExoLogger.getLogger(BaseResourceBinder.class.getName());
+   private static final Log LOG = ExoLogger.getLogger(ResourceBinderImpl.class.getName());
 
    private static final Comparator<ObjectFactory<AbstractResourceDescriptor>> RESOURCE_COMPARATOR =
       new ResourceComparator();
@@ -100,109 +91,13 @@ public class BaseResourceBinder implements ResourceBinder
 
    private int size = 0;
 
-   public BaseResourceBinder()
+   public ResourceBinderImpl()
    {
       // Initialize RuntimeDelegate instance
       // This is first component in life cycle what needs.
       // TODO better solution to initialize RuntimeDelegate
       RuntimeDelegate rd = new RuntimeDelegateImpl();
       RuntimeDelegate.setInstance(rd);
-   }
-   
-   /**
-    * @param application Application
-    * @see Application
-    */
-   @SuppressWarnings("unchecked")
-   public void addApplication(Application application)
-   {
-      ProviderBinder providers = ProviderBinder.getInstance();
-      for (Object obj : application.getSingletons())
-      {
-         if (obj.getClass().getAnnotation(Provider.class) != null)
-         {
-            // singleton provider
-            if (obj instanceof ContextResolver)
-            {
-               providers.addContextResolver((ContextResolver)obj);
-            }
-            if (obj instanceof ExceptionMapper)
-            {
-               providers.addExceptionMapper((ExceptionMapper)obj);
-            }
-            if (obj instanceof MessageBodyReader)
-            {
-               providers.addMessageBodyReader((MessageBodyReader)obj);
-            }
-            if (obj instanceof MessageBodyWriter)
-            {
-               providers.addMessageBodyWriter((MessageBodyWriter)obj);
-            }
-         }
-         else if (obj.getClass().getAnnotation(Filter.class) != null)
-         {
-            // singleton filter
-            if (obj instanceof MethodInvokerFilter)
-            {
-               providers.addMethodInvokerFilter((MethodInvokerFilter)obj);
-            }
-            if (obj instanceof RequestFilter)
-            {
-               providers.addRequestFilter((RequestFilter)obj);
-            }
-            if (obj instanceof ResponseFilter)
-            {
-               providers.addResponseFilter((ResponseFilter)obj);
-            }
-         }
-         else
-         {
-            bind(obj); // singleton resource
-         }
-      }
-      for (Class clazz : application.getClasses())
-      {
-         if (clazz.getAnnotation(Provider.class) != null)
-         {
-            // per-request provider
-            if (ContextResolver.class.isAssignableFrom(clazz))
-            {
-               providers.addContextResolver(clazz);
-            }
-            if (ExceptionMapper.class.isAssignableFrom(clazz))
-            {
-               providers.addExceptionMapper(clazz);
-            }
-            if (MessageBodyReader.class.isAssignableFrom(clazz))
-            {
-               providers.addMessageBodyReader(clazz);
-            }
-            if (MessageBodyWriter.class.isAssignableFrom(clazz))
-            {
-               providers.addMessageBodyWriter(clazz);
-            }
-         }
-         else if (clazz.getAnnotation(Filter.class) != null)
-         {
-            // per-request filter
-            if (MethodInvokerFilter.class.isAssignableFrom(clazz))
-            {
-               providers.addMethodInvokerFilter(clazz);
-            }
-            if (RequestFilter.class.isAssignableFrom(clazz))
-            {
-               providers.addRequestFilter(clazz);
-            }
-            if (ResponseFilter.class.isAssignableFrom(clazz))
-            {
-               providers.addResponseFilter(clazz);
-            }
-         }
-         else
-         {
-            bind(clazz); // per-request resource
-         }
-      }
    }
 
    /**
@@ -217,7 +112,7 @@ public class BaseResourceBinder implements ResourceBinder
       {
          try
          {
-            descriptor = new AbstractResourceDescriptorImpl(resource);
+            descriptor = new AbstractResourceDescriptorImpl(resource.getClass(), ComponentLifecycleScope.SINGLETON);
          }
          catch (Exception e)
          {
@@ -286,7 +181,7 @@ public class BaseResourceBinder implements ResourceBinder
       {
          try
          {
-            descriptor = new AbstractResourceDescriptorImpl(resourceClass);
+            descriptor = new AbstractResourceDescriptorImpl(resourceClass, ComponentLifecycleScope.PER_REQUEST);
          }
          catch (Exception e)
          {

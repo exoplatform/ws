@@ -18,6 +18,7 @@
  */
 package org.exoplatform.services.rest.impl.resource;
 
+import org.exoplatform.services.rest.ComponentLifecycleScope;
 import org.exoplatform.services.rest.ConstructorDescriptor;
 import org.exoplatform.services.rest.FieldInjector;
 import org.exoplatform.services.rest.impl.BaseTest;
@@ -68,7 +69,7 @@ public class ResourceDescriptorTest extends BaseTest
    {
       try
       {
-         new AbstractResourceDescriptorImpl(Resource1.class);
+         new AbstractResourceDescriptorImpl(Resource1.class, ComponentLifecycleScope.PER_REQUEST);
          fail("Should be failed here, resource does not contains JAX-RS methods");
       }
       catch (RuntimeException e)
@@ -80,7 +81,7 @@ public class ResourceDescriptorTest extends BaseTest
    {
       try
       {
-         new AbstractResourceDescriptorImpl(Resource2.class);
+         new AbstractResourceDescriptorImpl(Resource2.class, ComponentLifecycleScope.PER_REQUEST);
          fail("Should be failed here, resource does not have public constructor");
       }
       catch (RuntimeException e)
@@ -92,15 +93,15 @@ public class ResourceDescriptorTest extends BaseTest
    {
       try
       {
-         new AbstractResourceDescriptorImpl(Resource3.class);
+         new AbstractResourceDescriptorImpl(Resource3.class, ComponentLifecycleScope.PER_REQUEST);
          fail("Should be failed here, resource has two methods that have tha same HTTP method, consumes and produces annotation");
-         new AbstractResourceDescriptorImpl(Resource4.class);
+         new AbstractResourceDescriptorImpl(Resource4.class, ComponentLifecycleScope.PER_REQUEST);
          fail("Should be failed here, resource has two methods that have tha same HTTP method, consumes and produces annotation");
-         new AbstractResourceDescriptorImpl(Resource5.class);
+         new AbstractResourceDescriptorImpl(Resource5.class, ComponentLifecycleScope.PER_REQUEST);
          fail("Should be failed here, resource has two methods that have tha same HTTP method, path, consumes and produces annotation");
-         new AbstractResourceDescriptorImpl(Resource6.class);
+         new AbstractResourceDescriptorImpl(Resource6.class, ComponentLifecycleScope.PER_REQUEST);
          fail("Should be failed here, resource has two methods that have tha same HTTP method, path, consumes and produces annotation");
-         new AbstractResourceDescriptorImpl(Resource7.class);
+         new AbstractResourceDescriptorImpl(Resource7.class, ComponentLifecycleScope.PER_REQUEST);
          fail("Should be failed here, resource has two methods that have tha same path");
       }
       catch (RuntimeException e)
@@ -112,35 +113,35 @@ public class ResourceDescriptorTest extends BaseTest
    {
       try
       {
-         new AbstractResourceDescriptorImpl(Resource8.class);
+         new AbstractResourceDescriptorImpl(Resource8.class, ComponentLifecycleScope.PER_REQUEST);
          fail("Should be failed here, method has two JAX-RS annotation on the same parameter");
       }
       catch (RuntimeException e)
       {
       }
       // must warn
-      new AbstractResourceDescriptorImpl(Resource9.class);
+      new AbstractResourceDescriptorImpl(Resource9.class, ComponentLifecycleScope.PER_REQUEST);
    }
 
    public void testFailedCreation5()
    {
       try
       {
-         new AbstractResourceDescriptorImpl(Resource10.class);
+         new AbstractResourceDescriptorImpl(Resource10.class, ComponentLifecycleScope.PER_REQUEST);
          fail("Should be failed here, constructor of per-request resource has two JAX-RS annotation on the same parameter");
       }
       catch (RuntimeException e)
       {
       }
       // must warn
-      new AbstractResourceDescriptorImpl(Resource11.class);
+      new AbstractResourceDescriptorImpl(Resource11.class, ComponentLifecycleScope.PER_REQUEST);
    }
 
    public void testFailedCreation6()
    {
       try
       {
-         new AbstractResourceDescriptorImpl(Resource12.class);
+         new AbstractResourceDescriptorImpl(Resource12.class, ComponentLifecycleScope.PER_REQUEST);
          fail("Should be failed here, fields of per-request resource has two JAX-RS annotation on the same parameter");
       }
       catch (RuntimeException e)
@@ -153,7 +154,7 @@ public class ResourceDescriptorTest extends BaseTest
       // TODO Mechanism for checking log messages. There is some sections in
       // JAX-RS specification that said 'should warn...'. Need control this
       // messages in some way.
-      new AbstractResourceDescriptorImpl(Resource14.class);
+      new AbstractResourceDescriptorImpl(Resource14.class, ComponentLifecycleScope.PER_REQUEST);
    }
 
    // ====================== all of this resource are not valid =========================
@@ -360,7 +361,8 @@ public class ResourceDescriptorTest extends BaseTest
 
    public void testCreateAbstractResourceDescriptor()
    {
-      AbstractResourceDescriptor resource = new AbstractResourceDescriptorImpl(SampleResource.class);
+      AbstractResourceDescriptor resource =
+         new AbstractResourceDescriptorImpl(SampleResource.class, ComponentLifecycleScope.PER_REQUEST);
       assertTrue(resource.isRootResource());
       assertEquals("/a/{b}/", resource.getPathValue().getPath());
       assertEquals(SampleResource.class, resource.getObjectClass());
@@ -372,7 +374,8 @@ public class ResourceDescriptorTest extends BaseTest
 
    public void testResourceMethods()
    {
-      AbstractResourceDescriptor resource = new AbstractResourceDescriptorImpl(SampleResource.class);
+      AbstractResourceDescriptor resource =
+         new AbstractResourceDescriptorImpl(SampleResource.class, ComponentLifecycleScope.PER_REQUEST);
       // GET
       ResourceMethodDescriptor methodDescriptor = resource.getResourceMethods().getFirst("GET");
       assertEquals("GET", methodDescriptor.getHttpMethod());
@@ -405,7 +408,8 @@ public class ResourceDescriptorTest extends BaseTest
 
    public void testSubResourceMethods()
    {
-      AbstractResourceDescriptor resource = new AbstractResourceDescriptorImpl(SampleResource.class);
+      AbstractResourceDescriptor resource =
+         new AbstractResourceDescriptorImpl(SampleResource.class, ComponentLifecycleScope.PER_REQUEST);
       Collection<ResourceMethodMap<SubResourceMethodDescriptor>> subRes = resource.getSubResourceMethods().values();
       // POST
       SubResourceMethodDescriptor subResourceMethodDescriptor = subRes.iterator().next().getFirst("POST");
@@ -457,7 +461,8 @@ public class ResourceDescriptorTest extends BaseTest
    public void testSubResourceLocators()
    {
       // sub-resource method SampleResource#get2()
-      AbstractResourceDescriptor resource = new AbstractResourceDescriptorImpl(SampleResource.class);
+      AbstractResourceDescriptor resource =
+         new AbstractResourceDescriptorImpl(SampleResource.class, ComponentLifecycleScope.PER_REQUEST);
       SubResourceLocatorDescriptor subResourceLocatorDescriptor =
          resource.getSubResourceLocators().values().iterator().next();
       assertEquals("{c}/d", subResourceLocatorDescriptor.getPathValue().getPath());
@@ -474,7 +479,8 @@ public class ResourceDescriptorTest extends BaseTest
 
    public void testFields()
    {
-      AbstractResourceDescriptor resource = new AbstractResourceDescriptorImpl(SampleResource.class);
+      AbstractResourceDescriptor resource =
+         new AbstractResourceDescriptorImpl(SampleResource.class, ComponentLifecycleScope.PER_REQUEST);
       List<FieldInjector> fields = resource.getFieldInjectors();
       assertEquals(1, fields.size());
       FieldInjector f = fields.get(0);
@@ -488,7 +494,8 @@ public class ResourceDescriptorTest extends BaseTest
 
    public void testConstructors()
    {
-      AbstractResourceDescriptor resource = new AbstractResourceDescriptorImpl(SampleResource.class);
+      AbstractResourceDescriptor resource =
+         new AbstractResourceDescriptorImpl(SampleResource.class, ComponentLifecycleScope.PER_REQUEST);
       assertEquals(3, resource.getConstructorDescriptors().size());
       List<ConstructorDescriptor> c = resource.getConstructorDescriptors();
       assertEquals(2, c.get(0).getParameters().size());
@@ -563,7 +570,8 @@ public class ResourceDescriptorTest extends BaseTest
 
    public void testResourceMethodSorting()
    {
-      AbstractResourceDescriptor resource = new AbstractResourceDescriptorImpl(SampleResource1.class);
+      AbstractResourceDescriptor resource =
+         new AbstractResourceDescriptorImpl(SampleResource1.class, ComponentLifecycleScope.PER_REQUEST);
       List<ResourceMethodDescriptor> l = resource.getResourceMethods().get("GET");
       assertEquals("m4", l.get(0).getMethod().getName());
       assertEquals("m3", l.get(1).getMethod().getName());
@@ -624,7 +632,8 @@ public class ResourceDescriptorTest extends BaseTest
 
    public void testSubResourceMethodSorting()
    {
-      AbstractResourceDescriptor resource = new AbstractResourceDescriptorImpl(SampleResource2.class);
+      AbstractResourceDescriptor resource =
+         new AbstractResourceDescriptorImpl(SampleResource2.class, ComponentLifecycleScope.PER_REQUEST);
       SubResourceMethodMap srmm = resource.getSubResourceMethods();
       Collection<UriPattern> uris = srmm.keySet();
       Iterator<UriPattern> i = uris.iterator();
@@ -705,7 +714,8 @@ public class ResourceDescriptorTest extends BaseTest
 
    public void testSubResourceLocatorSorting()
    {
-      AbstractResourceDescriptor resource = new AbstractResourceDescriptorImpl(SampleResource3.class);
+      AbstractResourceDescriptor resource =
+         new AbstractResourceDescriptorImpl(SampleResource3.class, ComponentLifecycleScope.PER_REQUEST);
       SubResourceLocatorMap locs = resource.getSubResourceLocators();
       Collection<UriPattern> uris = locs.keySet();
       Iterator<UriPattern> i = uris.iterator();
@@ -757,7 +767,8 @@ public class ResourceDescriptorTest extends BaseTest
 
    public void testInitializeFieldSuperClass()
    {
-      AbstractResourceDescriptor resource = new AbstractResourceDescriptorImpl(EndResource.class);
+      AbstractResourceDescriptor resource =
+         new AbstractResourceDescriptorImpl(EndResource.class, ComponentLifecycleScope.PER_REQUEST);
       assertEquals(6, resource.getFieldInjectors().size());
    }
 

@@ -18,10 +18,10 @@
  */
 package org.exoplatform.services.rest.servlet;
 
-import org.exoplatform.services.rest.DependencyInjector;
+import org.exoplatform.services.rest.DependencySupplier;
 import org.exoplatform.services.rest.RequestHandler;
 import org.exoplatform.services.rest.ResourceBinder;
-import org.exoplatform.services.rest.impl.BaseResourceBinder;
+import org.exoplatform.services.rest.impl.ResourceBinderImpl;
 import org.exoplatform.services.rest.impl.RequestHandlerImpl;
 
 import javax.servlet.ServletContextEvent;
@@ -41,14 +41,14 @@ public class RestInitializedListener implements ServletContextListener
 
    public void contextInitialized(ServletContextEvent event)
    {
-      String dependencyInjectorFQN = event.getServletContext().getInitParameter(DependencyInjector.class.getName());
-      DependencyInjector dependencyInjector = null;
+      String dependencyInjectorFQN = event.getServletContext().getInitParameter(DependencySupplier.class.getName());
+      DependencySupplier dependencyInjector = null;
       if (dependencyInjectorFQN != null)
       {
          try
          {
             Class<?> cl = Thread.currentThread().getContextClassLoader().loadClass(dependencyInjectorFQN.trim());
-            dependencyInjector = (DependencyInjector)cl.newInstance();
+            dependencyInjector = (DependencySupplier)cl.newInstance();
          }
          catch (ClassNotFoundException cnfe)
          {
@@ -64,7 +64,7 @@ public class RestInitializedListener implements ServletContextListener
          }
       }
 
-      ResourceBinder binder = new BaseResourceBinder();
+      ResourceBinder binder = new ResourceBinderImpl();
       String applicationFQN = event.getServletContext().getInitParameter("javax.ws.rs.Application");
       if (applicationFQN != null)
       {
@@ -72,7 +72,7 @@ public class RestInitializedListener implements ServletContextListener
          {
             Class<?> cl = Thread.currentThread().getContextClassLoader().loadClass(applicationFQN.trim());
             Application application = (Application)cl.newInstance();
-            binder.addApplication(application);
+//            binder.addApplication(application);
          }
          catch (ClassNotFoundException cnfe)
          {

@@ -18,6 +18,7 @@
  */
 package org.exoplatform.services.rest.impl.resource;
 
+import org.exoplatform.services.rest.ComponentLifecycleScope;
 import org.exoplatform.services.rest.impl.AbstractResourceTest;
 
 import javax.ws.rs.GET;
@@ -87,7 +88,7 @@ public class AnnotationInheritanceTest extends AbstractResourceTest
    {
       try
       {
-         new AbstractResourceDescriptorImpl(Resource3.class);
+         new AbstractResourceDescriptorImpl(Resource3.class, ComponentLifecycleScope.PER_REQUEST);
          fail("Should be failed here, equivocality annotation on method m0");
       }
       catch (RuntimeException e)

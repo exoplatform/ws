@@ -22,28 +22,10 @@
 		<type>org.exoplatform.services.rest.impl.RestInitializer</type>
 		<init-params>
 			<values-param>
-				<name>ws.rs.entity.provider</name>
+				<name>ws.rest.components</name>
 				<value>org.exoplatform.services.rest.ext.provider.HierarchicalPropertyEntityProvider</value>
-<!--				 Add own entity providers here -->
-			</values-param>
-			<values-param>
-				<name>ws.rs.request.filter</name>
 				<value>org.exoplatform.services.rest.ext.filter.MethodOverrideFilter</value>
-<!--				 Add own request filters here -->
-			</values-param>
-			<values-param>
-				<name>ws.rs.response.filter</name>
-<!--				 Add own response filters here -->
-			</values-param>
-			<values-param>
-				<name>ws.rs.method.filter</name>
 				<value>org.exoplatform.services.rest.impl.method.MethodInvokerFilterComponentPlugin</value>
-<!--            Add own method filters here -->
-			</values-param>
-			<values-param>
-			   <name>ws.rs.jaxb.context</name>
-			   <value>org.exoplatform.services.rest.wadl.research.Application</value>
-<!--            Add own jaxb context here -->
 			</values-param>
 		</init-params>
 	</component>
@@ -51,7 +33,7 @@
 		<type>org.exoplatform.services.rest.impl.RequestHandlerImpl</type>
 	</component>
 	<component>
-		<type>org.exoplatform.services.rest.impl.ExoContainerResourceBinder</type>
+		<type>org.exoplatform.services.rest.impl.BaseResourceBinder</type>
 	</component>
 	<component>
 		<type>org.exoplatform.services.rest.impl.ExoContainerDependencyInjector</type>

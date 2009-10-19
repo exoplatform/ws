@@ -22,7 +22,7 @@ import junit.framework.TestCase;
 
 //import org.exoplatform.container.StandaloneContainer;
 import org.exoplatform.services.rest.impl.ApplicationContextImpl;
-import org.exoplatform.services.rest.impl.BaseResourceBinder;
+import org.exoplatform.services.rest.impl.ResourceBinderImpl;
 import org.exoplatform.services.rest.impl.ProviderBinder;
 import org.exoplatform.services.rest.impl.RequestHandlerImpl;
 
@@ -37,7 +37,7 @@ public abstract class BaseTest extends TestCase
 
    protected ProviderBinder providers;
 
-   protected BaseResourceBinder binder;
+   protected ResourceBinderImpl resources;
 
    protected RequestHandlerImpl requestHandler;
 
@@ -45,8 +45,8 @@ public abstract class BaseTest extends TestCase
    {
 //      StandaloneContainer.setConfigurationPath("src/test/java/conf/standalone/test-configuration.xml");
 //      container = StandaloneContainer.getInstance();
-      binder = new BaseResourceBinder();
-      requestHandler = new RequestHandlerImpl(binder, new SimpleDependencyInjector());
+      resources = new ResourceBinderImpl();
+      requestHandler = new RequestHandlerImpl(resources, new SimpleDependencySupplier());
       requestHandler.init();
       
       // reset providers to be sure it is clean
@@ -70,25 +70,25 @@ public abstract class BaseTest extends TestCase
    public boolean registry(Object resource) throws Exception
    {
       //    container.registerComponentInstance(resource);
-      return binder.bind(resource);
+      return resources.bind(resource);
    }
 
    public boolean registry(Class<?> resourceClass) throws Exception
    {
       //    container.registerComponentImplementation(resourceClass.getName(), resourceClass);
-      return binder.bind(resourceClass);
+      return resources.bind(resourceClass);
    }
 
    public boolean unregistry(Object resource)
    {
       //    container.unregisterComponentByInstance(resource);
-      return binder.unbind(resource.getClass());
+      return resources.unbind(resource.getClass());
    }
 
    public boolean unregistry(Class<?> resourceClass)
    {
       //    container.unregisterComponent(resourceClass.getName());
-      return binder.unbind(resourceClass);
+      return resources.unbind(resourceClass);
    }
 
 }

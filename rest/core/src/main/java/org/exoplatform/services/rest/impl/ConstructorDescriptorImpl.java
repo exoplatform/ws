@@ -254,7 +254,7 @@ public class ConstructorDescriptorImpl implements ConstructorDescriptor
                   .type(MediaType.TEXT_PLAIN).build());
             }
 
-            Object tmp = context.getDependencyInjector().getInjectableParameter(cp.getParameterClass(), null);
+            Object tmp = context.getDependencyInjector().getInstanceOfType(cp);
             if (tmp == null)
             {
                String msg =

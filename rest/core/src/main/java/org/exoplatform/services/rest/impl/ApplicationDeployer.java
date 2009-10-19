@@ -16,28 +16,35 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.exoplatform.services.rest;
+package org.exoplatform.services.rest.impl;
 
-import java.lang.reflect.Type;
+import org.exoplatform.services.rest.ResourceBinder;
+
+import javax.ws.rs.core.Application;
 
 /**
- * Implementation of DependencyInjector should be able to provide
- * objects that required for constructors or fields of Resource or Provider.
- *  
  * @author <a href="mailto:andrey.parfonov@exoplatform.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
-public interface DependencyInjector
+public class ApplicationDeployer extends RestComponentDeployer
 {
 
-   /**
-    * Get single parameter of type <code>type</code>.
-    * 
-    * @param type class of required parameter
-    * @param the type of object to be produced
-    * @return object of required type or null if instance of <code>type</code>
-    *           may not be produced
-    */
-   Object getInjectableParameter(Class<?> type, Type genericType);
-   
+   public ApplicationDeployer(ResourceBinder resources, ProviderBinder providers)
+   {
+      super(resources, providers);
+   }
+
+   @SuppressWarnings("unchecked")
+   public void deploy(Application application)
+   {
+      for (Object instance : application.getSingletons())
+      {
+         deploy(instance);
+      }
+      for (Class clazz : application.getClasses())
+      {
+         deploy(clazz);
+      }
+   }
+
 }

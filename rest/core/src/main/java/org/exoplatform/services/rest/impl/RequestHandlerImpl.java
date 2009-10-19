@@ -33,7 +33,7 @@ import javax.ws.rs.ext.ExceptionMapper;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.rest.ApplicationContext;
-import org.exoplatform.services.rest.DependencyInjector;
+import org.exoplatform.services.rest.DependencySupplier;
 import org.exoplatform.services.rest.FilterDescriptor;
 import org.exoplatform.services.rest.GenericContainerRequest;
 import org.exoplatform.services.rest.GenericContainerResponse;
@@ -114,9 +114,9 @@ public final class RequestHandlerImpl implements RequestHandler
     */
    private final ResourceBinder binder;
    
-   private final DependencyInjector depInjector;
+   private final DependencySupplier depInjector;
    
-   public RequestHandlerImpl(ResourceBinder binder, DependencyInjector depInjector)
+   public RequestHandlerImpl(ResourceBinder binder, DependencySupplier depInjector)
    {
       this.binder = binder;
       this.dispatcher = new RequestDispatcher(binder);

@@ -18,23 +18,23 @@
  */
 package org.exoplatform.services.rest.impl;
 
-import org.exoplatform.services.rest.DependencyInjector;
+import org.exoplatform.services.rest.DependencySupplier;
+import org.exoplatform.services.rest.Parameter;
 
-import java.lang.reflect.Type;
 import java.util.HashMap;
 
 /**
  * @author <a href="mailto:andrey.parfonov@exoplatform.com">Andrey Parfonov</a>
  * @version $Id$
  */
-public class SimpleDependencyInjector extends HashMap<Class<?>, Object> implements DependencyInjector
+public class SimpleDependencySupplier extends HashMap<Class<?>, Object> implements DependencySupplier
 {
 
    private static final long serialVersionUID = 8212609178539168377L;
 
-   public Object getInjectableParameter(Class<?> type, Type genericType)
+   public Object getInstanceOfType(Parameter parameter)
    {
-      return get(type);
+      return get(parameter.getParameterClass());
    }
 
 }

@@ -19,7 +19,7 @@
 package org.exoplatform.services.rest.impl;
 
 import org.exoplatform.services.rest.ApplicationContext;
-import org.exoplatform.services.rest.DependencyInjector;
+import org.exoplatform.services.rest.DependencySupplier;
 import org.exoplatform.services.rest.GenericContainerRequest;
 import org.exoplatform.services.rest.GenericContainerResponse;
 import org.exoplatform.services.rest.InitialProperties;
@@ -159,7 +159,7 @@ public class ApplicationContextImpl implements ApplicationContext
     */
    private MultivaluedMap<String, String> queryParameters;
 
-   private DependencyInjector depInjector;
+   private DependencySupplier depInjector;
 
    /**
     * Constructs new instance of ApplicationContext.
@@ -255,7 +255,7 @@ public class ApplicationContextImpl implements ApplicationContext
    /**
     * {@inheritDoc}
     */
-   public DependencyInjector getDependencyInjector()
+   public DependencySupplier getDependencyInjector()
    {
       return depInjector;
    }
@@ -484,7 +484,7 @@ public class ApplicationContextImpl implements ApplicationContext
    /**
     * {@inheritDoc}
     */
-   public void setDependencyInjector(DependencyInjector depInjector)
+   public void setDependencyInjector(DependencySupplier depInjector)
    {
       this.depInjector = depInjector;
    }

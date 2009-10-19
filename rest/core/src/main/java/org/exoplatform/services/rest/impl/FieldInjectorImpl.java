@@ -74,7 +74,6 @@ public class FieldInjectorImpl implements FieldInjector
     */
    private final boolean encoded;
 
-
    /** See {@link java.lang.reflect.Field} . */
    private final java.lang.reflect.Field jfield;
 
@@ -224,6 +223,28 @@ public class FieldInjectorImpl implements FieldInjector
 
             throw new WebApplicationException(e, Response.status(Response.Status.BAD_REQUEST).build());
          }
+      }
+      else
+      {
+         if (context.getDependencyInjector() != null)
+         {
+            Object tmp = context.getDependencyInjector().getInstanceOfType(this);
+            if (tmp != null)
+            {
+               try
+               {
+                  if (!Modifier.isPublic(jfield.getModifiers()))
+                     jfield.setAccessible(true);
+                  jfield.set(resource, tmp);
+               }
+               catch (Throwable e)
+               {
+                  // TODO check exception type 
+                  throw new WebApplicationException(e, Response.status(Response.Status.BAD_REQUEST).build());
+               }
+            }
+         }
+
       }
 
    }

@@ -44,12 +44,12 @@ public class RequestDispatcherTest extends AbstractResourceTest
 
    public void setUp() throws Exception
    {
-      binder = new BaseResourceBinder();
-      SimpleDependencyInjector depInjector = new SimpleDependencyInjector();
+      resources = new ResourceBinderImpl();
+      SimpleDependencySupplier depInjector = new SimpleDependencySupplier();
       depInjector.put(InjectableComponent1.class, new InjectableComponent1());
       depInjector.put(InjectableComponent2.class, new InjectableComponent2());
 
-      requestHandler = new RequestHandlerImpl(binder, depInjector);
+      requestHandler = new RequestHandlerImpl(resources, depInjector);
       requestHandler.init();
       
       // reset providers to be sure it is clean

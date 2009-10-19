@@ -82,7 +82,7 @@ public interface ApplicationContext extends UriInfo, InitialProperties
    GenericContainerResponse getContainerResponse();
 
    
-   DependencyInjector getDependencyInjector();
+   DependencySupplier getDependencyInjector();
    
    /**
     * @return See {@link HttpHeaders}
@@ -126,7 +126,7 @@ public interface ApplicationContext extends UriInfo, InitialProperties
     */
    UriInfo getUriInfo();
 
-   void setDependencyInjector(DependencyInjector depInjector);
+   void setDependencyInjector(DependencySupplier depInjector);
    
    /**
     * Pass in context list of path template parameters @see {@link UriPattern}.

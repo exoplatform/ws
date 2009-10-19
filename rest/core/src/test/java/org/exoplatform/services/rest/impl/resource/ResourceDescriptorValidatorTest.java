@@ -18,6 +18,7 @@
  */
 package org.exoplatform.services.rest.impl.resource;
 
+import org.exoplatform.services.rest.ComponentLifecycleScope;
 import org.exoplatform.services.rest.impl.BaseTest;
 import org.exoplatform.services.rest.resource.AbstractResourceDescriptor;
 import org.exoplatform.services.rest.resource.ResourceMethodDescriptor;
@@ -46,7 +47,8 @@ public class ResourceDescriptorValidatorTest extends BaseTest
 
    public void testAbstractResourceDescriptorValidator()
    {
-      AbstractResourceDescriptor resource = new AbstractResourceDescriptorImpl(Resource2.class);
+      AbstractResourceDescriptor resource =
+         new AbstractResourceDescriptorImpl(Resource2.class, ComponentLifecycleScope.PER_REQUEST);
       try
       {
          resource.accept(new ResourceDescriptorValidator());
@@ -59,7 +61,8 @@ public class ResourceDescriptorValidatorTest extends BaseTest
 
    public void testResourceMethodDescriptorValidator()
    {
-      AbstractResourceDescriptor resource = new AbstractResourceDescriptorImpl(Resource3.class);
+      AbstractResourceDescriptor resource =
+         new AbstractResourceDescriptorImpl(Resource3.class, ComponentLifecycleScope.PER_REQUEST);
       for (List<ResourceMethodDescriptor> l : resource.getResourceMethods().values())
       {
          ResourceDescriptorValidator validator = new ResourceDescriptorValidator();
@@ -88,7 +91,8 @@ public class ResourceDescriptorValidatorTest extends BaseTest
 
    public void testSubResourceMethodDescriptorValidator()
    {
-      AbstractResourceDescriptor resource = new AbstractResourceDescriptorImpl(Resource4.class);
+      AbstractResourceDescriptor resource =
+         new AbstractResourceDescriptorImpl(Resource4.class, ComponentLifecycleScope.PER_REQUEST);
       ResourceDescriptorValidator validator = new ResourceDescriptorValidator();
       for (ResourceMethodMap<SubResourceMethodDescriptor> srmm : resource.getSubResourceMethods().values())
       {
@@ -117,7 +121,8 @@ public class ResourceDescriptorValidatorTest extends BaseTest
 
    public void testSubResourceLocatorDescriptorValidator()
    {
-      AbstractResourceDescriptor resource = new AbstractResourceDescriptorImpl(Resource5.class);
+      AbstractResourceDescriptor resource =
+         new AbstractResourceDescriptorImpl(Resource5.class, ComponentLifecycleScope.PER_REQUEST);
       ResourceDescriptorValidator validator = new ResourceDescriptorValidator();
       for (SubResourceLocatorDescriptor rmd : resource.getSubResourceLocators().values())
       {

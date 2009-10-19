@@ -21,6 +21,7 @@ package org.exoplatform.services.rest.impl;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.rest.ApplicationContext;
+import org.exoplatform.services.rest.ComponentLifecycleScope;
 import org.exoplatform.services.rest.GenericContainerRequest;
 import org.exoplatform.services.rest.GenericContainerResponse;
 import org.exoplatform.services.rest.ObjectFactory;
@@ -332,7 +333,8 @@ public final class RequestDispatcher
       MethodInvoker invoker = srld.getMethodInvoker();
       resource = invoker.invokeMethod(resource, srld, context);
 
-      AbstractResourceDescriptor descriptor = new AbstractResourceDescriptorImpl(resource);
+      AbstractResourceDescriptor descriptor =
+         new AbstractResourceDescriptorImpl(resource.getClass(), ComponentLifecycleScope.SINGLETON);
       SingletonObjectFactory<AbstractResourceDescriptor> locResource =
          new SingletonObjectFactory<AbstractResourceDescriptor>(descriptor, resource);
 

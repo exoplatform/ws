@@ -18,26 +18,31 @@
  */
 package org.exoplatform.services.rest.impl;
 
-import java.lang.reflect.Type;
-
-import org.exoplatform.container.ExoContainer;
-import org.exoplatform.container.ExoContainerContext;
-import org.exoplatform.services.rest.DependencyInjector;
+import org.exoplatform.services.rest.ResourceBinder;
 
 /**
  * @author <a href="mailto:andrey.parfonov@exoplatform.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
-public class ExoContainerDependencyInjector implements DependencyInjector
+public abstract class RestComponentDeployer
 {
 
-   /**
-    * {@inheritDoc}
-    */
-   public Object getInjectableParameter(Class<?> type, Type genericType)
+   protected RestComponentResolver resolver;
+
+   public RestComponentDeployer(ResourceBinder resources, ProviderBinder providers)
    {
-      ExoContainer container = ExoContainerContext.getCurrentContainer();
-      return container.getComponentInstanceOfType(type);
+      resolver = new RestComponentResolver(resources, providers);
+   }
+
+   public void deploy(Object instance)
+   {
+      resolver.addSingleton(instance);
+   }
+
+   @SuppressWarnings("unchecked")
+   public void deploy(Class clazz)
+   {
+      resolver.addPerRequest(clazz);
    }
 
 }

@@ -18,6 +18,7 @@
  */
 package org.exoplatform.services.rest.wadl;
 
+import org.exoplatform.services.rest.ComponentLifecycleScope;
 import org.exoplatform.services.rest.impl.BaseTest;
 import org.exoplatform.services.rest.impl.resource.AbstractResourceDescriptorImpl;
 import org.exoplatform.services.rest.resource.AbstractResourceDescriptor;
@@ -124,7 +125,7 @@ public class WadlProcessorTest extends BaseTest
    public void testBaseWadlGenerator() throws Exception
    {
 
-      AbstractResourceDescriptor ard = new AbstractResourceDescriptorImpl(Resource1.class);
+      AbstractResourceDescriptor ard = new AbstractResourceDescriptorImpl(Resource1.class, ComponentLifecycleScope.PER_REQUEST);
       WadlProcessor wadlProcessor = new WadlProcessor();
       Application app = wadlProcessor.process(ard, new URI("http://localhost:8080/ws/rs"));
 
