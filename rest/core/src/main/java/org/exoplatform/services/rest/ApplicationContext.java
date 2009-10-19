@@ -82,7 +82,7 @@ public interface ApplicationContext extends UriInfo, InitialProperties
    GenericContainerResponse getContainerResponse();
 
    
-   DependencySupplier getDependencyInjector();
+   DependencySupplier getDependencySupplier();
    
    /**
     * @return See {@link HttpHeaders}

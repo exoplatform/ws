@@ -18,6 +18,7 @@
  */
 package org.exoplatform.services.rest.ext.method.filter;
 
+import org.exoplatform.services.rest.Filter;
 import org.exoplatform.services.rest.impl.ApplicationContextImpl;
 import org.exoplatform.services.rest.method.MethodInvokerFilter;
 import org.exoplatform.services.rest.resource.GenericMethodResource;
@@ -36,8 +37,9 @@ import javax.ws.rs.core.SecurityContext;
  * use JSR-250 security common annotations. See also https://jsr250.dev.java.net .
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  */
+@Filter
 public class MethodAccessFilter implements MethodInvokerFilter
 {
 

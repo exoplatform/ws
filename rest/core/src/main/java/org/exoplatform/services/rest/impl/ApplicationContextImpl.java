@@ -255,7 +255,7 @@ public class ApplicationContextImpl implements ApplicationContext
    /**
     * {@inheritDoc}
     */
-   public DependencySupplier getDependencyInjector()
+   public DependencySupplier getDependencySupplier()
    {
       return depInjector;
    }

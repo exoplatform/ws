@@ -16,33 +16,39 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.exoplatform.services.rest.impl.method;
+package org.exoplatform.services.rest.impl;
 
-import org.exoplatform.services.rest.ApplicationContext;
-import org.exoplatform.services.rest.Inject;
+import java.lang.annotation.Annotation;
+
+import org.exoplatform.services.rest.DependencySupplier;
 import org.exoplatform.services.rest.Parameter;
 
 /**
  * @author <a href="mailto:andrey.parfonov@exoplatform.com">Andrey Parfonov</a>
  * @version $Id$
  */
-public class InjectableProvider extends ParameterResolver<Inject>
+public class DependencySupplierTest extends BaseTest
 {
 
-   InjectableProvider(Inject inject)
+   public void setUp() throws Exception
    {
+      super.setUp();
+      setContext();
    }
 
-   /**
-    * {@inheritDoc}
-    */
-   @Override
-   public Object resolve(Parameter parameter, ApplicationContext context) throws Exception
+   public static class Component1
    {
-      if (context.getDependencySupplier() != null)
-         return context.getDependencySupplier().getInstanceOfType(parameter);
+      // For testing DependencySupplier.
+   }
 
-      return null;
+   public void testDependencySupplier()
+   {
+      DependencySupplier depSupplier =
+         (DependencySupplier)container.getComponentInstanceOfType(DependencySupplier.class);
+      assertNotNull(depSupplier);
+      container.registerComponentInstance(new Component1());
+      Parameter t = new ConstructorParameterImpl(null, new Annotation[0], Component1.class, null, null, false);
+      assertNotNull(depSupplier.getInstanceOfType(t));
    }
 
 }

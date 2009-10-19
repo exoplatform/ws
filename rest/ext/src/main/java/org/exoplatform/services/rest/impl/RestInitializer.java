@@ -24,11 +24,14 @@ import org.exoplatform.container.xml.InitParams;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.rest.DependencySupplier;
+import org.exoplatform.services.rest.FieldInjector;
+import org.exoplatform.services.rest.Inject;
 import org.exoplatform.services.rest.Parameter;
 import org.exoplatform.services.rest.ResourceBinder;
 import org.exoplatform.services.rest.resource.ResourceContainer;
 import org.picocontainer.Startable;
 
+import java.lang.annotation.Annotation;
 import java.util.List;
 
 import javax.ws.rs.core.Application;
@@ -49,7 +52,6 @@ public class RestInitializer extends ApplicationDeployer implements DependencySu
    public RestInitializer(ResourceBinder resources, InitParams initParams, ExoContainerContext containerContext)
    {
       super(resources, ProviderBinder.getInstance());
-      ExoContainer container = containerContext.getContainer();
       if (initParams != null)
       {
          for (Object cl : initParams.getValuesParam("ws.rest.components").getValues())
@@ -64,6 +66,8 @@ public class RestInitializer extends ApplicationDeployer implements DependencySu
             }
          }
       }
+
+      ExoContainer container = containerContext.getContainer();
       List<Application> applications = container.getComponentInstancesOfType(Application.class);
       for (Application a : applications)
       {
@@ -75,15 +79,37 @@ public class RestInitializer extends ApplicationDeployer implements DependencySu
       }
    }
 
+   /**
+    * {@inheritDoc}
+    */
    public Object getInstanceOfType(Parameter parameter)
    {
-      return null;
+      ExoContainer container = ExoContainerContext.getCurrentContainer();
+      
+      if (parameter instanceof FieldInjector)
+      {
+         for (Annotation a : parameter.getAnnotations())
+         {
+            // Do not process fields without annotation Inject
+            if (a.annotationType() == Inject.class)
+            {
+               return container.getComponentInstanceOfType(parameter.getParameterClass());
+            }
+         }
+      }
+      return container.getComponentInstanceOfType(parameter.getParameterClass());
    }
 
+   /**
+    * {@inheritDoc}
+    */
    public void start()
    {
    }
 
+   /**
+    * {@inheritDoc}
+    */
    public void stop()
    {
    }

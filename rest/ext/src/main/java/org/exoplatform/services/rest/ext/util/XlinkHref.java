@@ -25,7 +25,7 @@ import org.w3c.dom.Element;
  * of DOM structure.<br/>
  * 
  * @author Gennady Azarenkov
- * @version $Id: $
+ * @version $Id$
  */
 public class XlinkHref
 {

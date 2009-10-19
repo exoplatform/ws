@@ -18,9 +18,13 @@
  */
 package org.exoplatform.services.rest.impl;
 
+import java.util.Properties;
+
 import junit.framework.TestCase;
 
 //import org.exoplatform.container.StandaloneContainer;
+import org.exoplatform.services.log.LogConfigurator;
+import org.exoplatform.services.log.impl.Log4JConfigurator;
 import org.exoplatform.services.rest.impl.ApplicationContextImpl;
 import org.exoplatform.services.rest.impl.ResourceBinderImpl;
 import org.exoplatform.services.rest.impl.ProviderBinder;
@@ -33,8 +37,6 @@ import org.exoplatform.services.rest.impl.RequestHandlerImpl;
 public abstract class BaseTest extends TestCase
 {
 
-//   protected StandaloneContainer container;
-
    protected ProviderBinder providers;
 
    protected ResourceBinderImpl resources;
@@ -43,51 +45,46 @@ public abstract class BaseTest extends TestCase
 
    public void setUp() throws Exception
    {
-//      StandaloneContainer.setConfigurationPath("src/test/java/conf/standalone/test-configuration.xml");
-//      container = StandaloneContainer.getInstance();
       resources = new ResourceBinderImpl();
       requestHandler = new RequestHandlerImpl(resources, new SimpleDependencySupplier());
       requestHandler.init();
-      
+
       // reset providers to be sure it is clean
       ProviderBinder.setInstance(new ProviderBinder());
       providers = ProviderBinder.getInstance();
 
-      // Set-up context for tests that are not used full request cycle.
-      // Usually context is set-up in RequestHandler
-//      ApplicationContextImpl.setCurrent(new ApplicationContextImpl(null, null, providers));
+      LogConfigurator lc = new Log4JConfigurator();
+      Properties props = new Properties();
+      props.load(Thread.currentThread().getContextClassLoader().getResourceAsStream("conf/log4j.properties"));
+      lc.configure(props);
    }
 
    protected void setContext()
    {
       ApplicationContextImpl.setCurrent(new ApplicationContextImpl(null, null, providers));
    }
-   
+
    public void tearDown() throws Exception
    {
    }
 
    public boolean registry(Object resource) throws Exception
    {
-      //    container.registerComponentInstance(resource);
       return resources.bind(resource);
    }
 
    public boolean registry(Class<?> resourceClass) throws Exception
    {
-      //    container.registerComponentImplementation(resourceClass.getName(), resourceClass);
       return resources.bind(resourceClass);
    }
 
    public boolean unregistry(Object resource)
    {
-      //    container.unregisterComponentByInstance(resource);
       return resources.unbind(resource.getClass());
    }
 
    public boolean unregistry(Class<?> resourceClass)
    {
-      //    container.unregisterComponent(resourceClass.getName());
       return resources.unbind(resourceClass);
    }
 

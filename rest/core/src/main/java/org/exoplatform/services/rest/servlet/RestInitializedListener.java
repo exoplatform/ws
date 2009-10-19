@@ -21,6 +21,8 @@ package org.exoplatform.services.rest.servlet;
 import org.exoplatform.services.rest.DependencySupplier;
 import org.exoplatform.services.rest.RequestHandler;
 import org.exoplatform.services.rest.ResourceBinder;
+import org.exoplatform.services.rest.impl.ApplicationDeployer;
+import org.exoplatform.services.rest.impl.ProviderBinder;
 import org.exoplatform.services.rest.impl.ResourceBinderImpl;
 import org.exoplatform.services.rest.impl.RequestHandlerImpl;
 
@@ -29,26 +31,34 @@ import javax.servlet.ServletContextListener;
 import javax.ws.rs.core.Application;
 
 /**
+ * Initialize required components of JAX-RS framework and deploy single JAX-RS application.
+ * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
  * @version $Id$
  */
 public class RestInitializedListener implements ServletContextListener
 {
 
+   /**
+    * {@inheritDoc}
+    */
    public void contextDestroyed(ServletContextEvent event)
    {
    }
 
+   /**
+    * {@inheritDoc}
+    */
    public void contextInitialized(ServletContextEvent event)
    {
       String dependencyInjectorFQN = event.getServletContext().getInitParameter(DependencySupplier.class.getName());
-      DependencySupplier dependencyInjector = null;
+      DependencySupplier dependencySupplier = null;
       if (dependencyInjectorFQN != null)
       {
          try
          {
             Class<?> cl = Thread.currentThread().getContextClassLoader().loadClass(dependencyInjectorFQN.trim());
-            dependencyInjector = (DependencySupplier)cl.newInstance();
+            dependencySupplier = (DependencySupplier)cl.newInstance();
          }
          catch (ClassNotFoundException cnfe)
          {
@@ -64,7 +74,9 @@ public class RestInitializedListener implements ServletContextListener
          }
       }
 
-      ResourceBinder binder = new ResourceBinderImpl();
+      ResourceBinder resources = new ResourceBinderImpl();
+      ApplicationDeployer deployer = new ApplicationDeployer(resources, ProviderBinder.getInstance());
+
       String applicationFQN = event.getServletContext().getInitParameter("javax.ws.rs.Application");
       if (applicationFQN != null)
       {
@@ -72,7 +84,7 @@ public class RestInitializedListener implements ServletContextListener
          {
             Class<?> cl = Thread.currentThread().getContextClassLoader().loadClass(applicationFQN.trim());
             Application application = (Application)cl.newInstance();
-//            binder.addApplication(application);
+            deployer.deploy(application);
          }
          catch (ClassNotFoundException cnfe)
          {
@@ -88,7 +100,7 @@ public class RestInitializedListener implements ServletContextListener
          }
       }
 
-      RequestHandler handler = new RequestHandlerImpl(binder, dependencyInjector);
+      RequestHandler handler = new RequestHandlerImpl(resources, dependencySupplier);
       event.getServletContext().setAttribute(RequestHandler.class.getName(), handler);
    }
 

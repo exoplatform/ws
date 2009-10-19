@@ -226,9 +226,9 @@ public class FieldInjectorImpl implements FieldInjector
       }
       else
       {
-         if (context.getDependencyInjector() != null)
+         if (context.getDependencySupplier() != null)
          {
-            Object tmp = context.getDependencyInjector().getInstanceOfType(this);
+            Object tmp = context.getDependencySupplier().getInstanceOfType(this);
             if (tmp != null)
             {
                try
@@ -239,8 +239,7 @@ public class FieldInjectorImpl implements FieldInjector
                }
                catch (Throwable e)
                {
-                  // TODO check exception type 
-                  throw new WebApplicationException(e, Response.status(Response.Status.BAD_REQUEST).build());
+                  throw new WebApplicationException(e, Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
                }
             }
          }

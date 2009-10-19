@@ -29,7 +29,7 @@ public interface DependencySupplier
 {
 
    /**
-    * Get object of <code>type</code>.
+    * Get object that is approach do description <code>parameter</code>.
     * 
     * @param parameter required parameter description
     * @return object of required type or null if instance described by

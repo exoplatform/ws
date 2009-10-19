@@ -244,7 +244,7 @@ public class ConstructorDescriptorImpl implements ConstructorDescriptor
             // If parameter not has not annotation then get constructor parameter
             // from DependencyInjector, this is out of scope JAX-RS specification.
             
-            if (context.getDependencyInjector() == null)
+            if (context.getDependencySupplier() == null)
             {
                String msg =
                   "Can't instantiate resource " + resourceClass
@@ -254,7 +254,7 @@ public class ConstructorDescriptorImpl implements ConstructorDescriptor
                   .type(MediaType.TEXT_PLAIN).build());
             }
 
-            Object tmp = context.getDependencyInjector().getInstanceOfType(cp);
+            Object tmp = context.getDependencySupplier().getInstanceOfType(cp);
             if (tmp == null)
             {
                String msg =

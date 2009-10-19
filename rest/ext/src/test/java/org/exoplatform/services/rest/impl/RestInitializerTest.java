@@ -16,33 +16,36 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.exoplatform.services.rest.impl.method;
+package org.exoplatform.services.rest.impl;
 
-import org.exoplatform.services.rest.ApplicationContext;
-import org.exoplatform.services.rest.Inject;
-import org.exoplatform.services.rest.Parameter;
+import javax.ws.rs.core.MediaType;
+
+import org.exoplatform.common.util.HierarchicalProperty;
 
 /**
  * @author <a href="mailto:andrey.parfonov@exoplatform.com">Andrey Parfonov</a>
  * @version $Id$
  */
-public class InjectableProvider extends ParameterResolver<Inject>
+public class RestInitializerTest extends BaseTest
 {
 
-   InjectableProvider(Inject inject)
+   public void setUp() throws Exception
    {
+      super.setUp();
+      setContext();
    }
 
-   /**
-    * {@inheritDoc}
-    */
-   @Override
-   public Object resolve(Parameter parameter, ApplicationContext context) throws Exception
+   // Check does we get all additional component specified in configuration.
+   public void testDeployAdditionalComponents()
    {
-      if (context.getDependencySupplier() != null)
-         return context.getDependencySupplier().getInstanceOfType(parameter);
-
-      return null;
+      ProviderBinder providers = ProviderBinder.getInstance();
+      // XXX Able (no NPE) to use null instead "path" because UriPattern
+      // for filters in null and path will be never checked.
+      assertEquals(1, providers.getRequestFilters(null).size());
+      assertEquals(1, providers.getMethodInvokerFilters(null).size());
+      // -----
+      assertNotNull(providers.getMessageBodyReader(HierarchicalProperty.class, null, null,
+         MediaType.APPLICATION_XML_TYPE));
    }
 
 }

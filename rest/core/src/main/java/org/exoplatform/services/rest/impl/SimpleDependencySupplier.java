@@ -19,8 +19,11 @@
 package org.exoplatform.services.rest.impl;
 
 import org.exoplatform.services.rest.DependencySupplier;
+import org.exoplatform.services.rest.FieldInjector;
+import org.exoplatform.services.rest.Inject;
 import org.exoplatform.services.rest.Parameter;
 
+import java.lang.annotation.Annotation;
 import java.util.HashMap;
 
 /**
@@ -32,8 +35,22 @@ public class SimpleDependencySupplier extends HashMap<Class<?>, Object> implemen
 
    private static final long serialVersionUID = 8212609178539168377L;
 
+   /**
+    * {@inheritDoc}
+    */
    public Object getInstanceOfType(Parameter parameter)
    {
+      if (parameter instanceof FieldInjector)
+      {
+         for (Annotation a : parameter.getAnnotations())
+         {
+            // Do not process fields without annotation Inject
+            if (a.annotationType() == Inject.class)
+            {
+               return get(parameter.getParameterClass());
+            }
+         }
+      }
       return get(parameter.getParameterClass());
    }
 
