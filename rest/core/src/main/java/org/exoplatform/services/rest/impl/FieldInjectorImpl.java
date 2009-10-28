@@ -228,7 +228,7 @@ public class FieldInjectorImpl implements FieldInjector
       {
          if (context.getDependencySupplier() != null)
          {
-            Object tmp = context.getDependencySupplier().getInstanceOfType(this);
+            Object tmp = context.getDependencySupplier().getComponent(this);
             if (tmp != null)
             {
                try

@@ -58,6 +58,7 @@
       <module>testframework</module>
       <module>rest/core</module>
       <module>rest/ext</module>
+      <module>rest/exo.ws.rest.deploy</module>
       <module>packaging/module</module>
    </modules>
 
@@ -76,6 +77,11 @@
          <dependency>
             <groupId>org.exoplatform.ws</groupId>
             <artifactId>exo.ws.rest.core</artifactId>
+            <version>${project.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.exoplatform.ws</groupId>
+            <artifactId>exo.ws.rest.ext</artifactId>
             <version>${project.version}</version>
          </dependency>
          <dependency>

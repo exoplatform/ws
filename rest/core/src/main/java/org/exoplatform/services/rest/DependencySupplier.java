@@ -35,6 +35,6 @@ public interface DependencySupplier
     * @return object of required type or null if instance described by
     *           <code>parameter</code> may not be produced
     */
-   Object getInstanceOfType(Parameter parameter);
+   Object getComponent(Parameter parameter);
    
 }

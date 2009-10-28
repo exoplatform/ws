@@ -28,27 +28,18 @@
       <version>2.2.0-SNAPSHOT</version>
    </parent>
 
-   <artifactId>exo.ws.rest.ext</artifactId>
+   <artifactId>exo.ws.rest.deploy</artifactId>
 
-   <name>eXo WS :: REST :: Extentions</name>
+   <name>eXo WS :: REST :: Deploy</name>
 
    <dependencies>
-      <dependency>
-         <groupId>org.exoplatform.ws</groupId>
-         <artifactId>exo.ws.commons</artifactId>
-      </dependency>
       <dependency>
          <groupId>org.exoplatform.ws</groupId>
          <artifactId>exo.ws.rest.core</artifactId>
       </dependency>
       <dependency>
-         <groupId>org.exoplatform.core</groupId>
-         <artifactId>exo.core.component.xml-processing</artifactId>
-      </dependency>
-
-      <dependency>
-         <groupId>javax.annotation</groupId>
-         <artifactId>jsr250-api</artifactId>
+         <groupId>org.exoplatform.kernel</groupId>
+         <artifactId>exo.kernel.container</artifactId>
       </dependency>
    </dependencies>
 </project>

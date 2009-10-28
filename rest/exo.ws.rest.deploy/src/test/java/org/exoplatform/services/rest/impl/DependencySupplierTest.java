@@ -18,28 +18,37 @@
  */
 package org.exoplatform.services.rest.impl;
 
-import org.exoplatform.container.StandaloneContainer;
+import java.lang.annotation.Annotation;
 
-import junit.framework.TestCase;
+import org.exoplatform.services.rest.DependencySupplier;
+import org.exoplatform.services.rest.Parameter;
 
 /**
  * @author <a href="mailto:andrey.parfonov@exoplatform.com">Andrey Parfonov</a>
  * @version $Id$
  */
-public abstract class BaseTest extends TestCase
+public class DependencySupplierTest extends BaseTest
 {
-
-   protected StandaloneContainer container;
 
    public void setUp() throws Exception
    {
-      StandaloneContainer.setConfigurationPath("src/test/java/conf/standalone/test-configuration.xml");
-      container = StandaloneContainer.getInstance();
+      super.setUp();
+      setContext();
    }
-   
-   protected void setContext()
+
+   public static class Component1
    {
-      ApplicationContextImpl.setCurrent(new ApplicationContextImpl(null, null, ProviderBinder.getInstance()));
+      // For testing DependencySupplier.
+   }
+
+   public void testDependencySupplier()
+   {
+      DependencySupplier depSupplier =
+         (DependencySupplier)container.getComponentInstanceOfType(DependencySupplier.class);
+      assertNotNull(depSupplier);
+      container.registerComponentInstance(new Component1());
+      Parameter t = new ConstructorParameterImpl(null, new Annotation[0], Component1.class, null, null, false);
+      assertNotNull(depSupplier.getComponent(t));
    }
 
 }

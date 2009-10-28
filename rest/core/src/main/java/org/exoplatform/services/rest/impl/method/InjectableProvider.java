@@ -25,6 +25,7 @@ import org.exoplatform.services.rest.Parameter;
 /**
  * @author <a href="mailto:andrey.parfonov@exoplatform.com">Andrey Parfonov</a>
  * @version $Id$
+ * @deprecated
  */
 public class InjectableProvider extends ParameterResolver<Inject>
 {
@@ -40,7 +41,7 @@ public class InjectableProvider extends ParameterResolver<Inject>
    public Object resolve(Parameter parameter, ApplicationContext context) throws Exception
    {
       if (context.getDependencySupplier() != null)
-         return context.getDependencySupplier().getInstanceOfType(parameter);
+         return context.getDependencySupplier().getComponent(parameter);
 
       return null;
    }

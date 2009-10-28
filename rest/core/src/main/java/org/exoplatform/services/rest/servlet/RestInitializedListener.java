@@ -25,7 +25,7 @@ import org.exoplatform.services.rest.DependencySupplier;
 import org.exoplatform.services.rest.Filter;
 import org.exoplatform.services.rest.RequestHandler;
 import org.exoplatform.services.rest.ResourceBinder;
-import org.exoplatform.services.rest.impl.ApplicationDeployer;
+import org.exoplatform.services.rest.impl.ApplicationPublisher;
 import org.exoplatform.services.rest.impl.ProviderBinder;
 import org.exoplatform.services.rest.impl.ResourceBinderImpl;
 import org.exoplatform.services.rest.impl.RequestHandlerImpl;
@@ -35,6 +35,7 @@ import org.scannotation.WarUrlFinder;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -71,7 +72,7 @@ public class RestInitializedListener implements ServletContextListener
       String dependencyInjectorFQN = event.getServletContext().getInitParameter(DependencySupplier.class.getName());
 
       ResourceBinder resources = new ResourceBinderImpl();
-      ApplicationDeployer deployer = new ApplicationDeployer(resources, ProviderBinder.getInstance());
+      ApplicationPublisher publisher = new ApplicationPublisher(resources, ProviderBinder.getInstance());
 
       String applicationFQN = event.getServletContext().getInitParameter("javax.ws.rs.Application");
       if (applicationFQN != null)
@@ -85,7 +86,7 @@ public class RestInitializedListener implements ServletContextListener
          {
             Class<?> cl = Thread.currentThread().getContextClassLoader().loadClass(applicationFQN.trim());
             Application application = (Application)cl.newInstance();
-            deployer.deploy(application);
+            publisher.publish(application);
          }
          catch (ClassNotFoundException cnfe)
          {
@@ -113,6 +114,7 @@ public class RestInitializedListener implements ServletContextListener
                annotationDB.scanArchives(classes);
             annotationDB.scanArchives(libs);
 
+            final Set<Class<?>> scanned = new HashSet<Class<?>>();
             Map<String, Set<String>> results = annotationDB.getAnnotationIndex();
             for (String annotation : new String[]{Path.class.getName(), Provider.class.getName(),
                Filter.class.getName()})
@@ -129,8 +131,7 @@ public class RestInitializedListener implements ServletContextListener
                            LOG.info("Skip abstract class or interface " + fqn);
                            continue;
                         }
-                        deployer.deploy(cl);
-                        LOG.info("Deployed component: " + fqn);
+                        scanned.add(cl);
                      }
                      catch (ClassNotFoundException e)
                      {
@@ -139,6 +140,14 @@ public class RestInitializedListener implements ServletContextListener
                   }
                }
             }
+            publisher.publish(new Application()
+            {
+               @Override
+               public Set<Class<?>> getClasses()
+               {
+                  return scanned;
+               }
+            });
          }
          catch (IOException e)
          {

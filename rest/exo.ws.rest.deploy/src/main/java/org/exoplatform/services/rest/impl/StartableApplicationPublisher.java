@@ -18,74 +18,43 @@
  */
 package org.exoplatform.services.rest.impl;
 
-import org.exoplatform.container.ExoContainer;
-import org.exoplatform.container.ExoContainerContext;
-import org.exoplatform.container.xml.InitParams;
-import org.exoplatform.services.log.ExoLogger;
-import org.exoplatform.services.log.Log;
-import org.exoplatform.services.rest.DependencySupplier;
-import org.exoplatform.services.rest.FieldInjector;
-import org.exoplatform.services.rest.Inject;
-import org.exoplatform.services.rest.Parameter;
-import org.exoplatform.services.rest.ResourceBinder;
-import org.exoplatform.services.rest.resource.ResourceContainer;
-import org.picocontainer.Startable;
-
 import java.lang.annotation.Annotation;
 import java.util.List;
 
 import javax.ws.rs.core.Application;
 
+import org.exoplatform.container.ExoContainer;
+import org.exoplatform.container.ExoContainerContext;
+import org.exoplatform.services.rest.DependencySupplier;
+import org.exoplatform.services.rest.FieldInjector;
+import org.exoplatform.services.rest.Inject;
+import org.exoplatform.services.rest.Parameter;
+import org.exoplatform.services.rest.ResourceBinder;
+import org.picocontainer.Startable;
+
 /**
  * @author <a href="mailto:andrey.parfonov@exoplatform.com">Andrey Parfonov</a>
  * @version $Id$
  */
-public class RestInitializer extends ApplicationDeployer implements DependencySupplier, Startable
+public class StartableApplicationPublisher extends ApplicationPublisher implements DependencySupplier, Startable
 {
 
-   /**
-    * Logger.
-    */
-   private static final Log LOG = ExoLogger.getLogger(RestInitializer.class.getName());
+   private ExoContainer container;
 
-   @SuppressWarnings("unchecked")
-   public RestInitializer(ResourceBinder resources, InitParams initParams, ExoContainerContext containerContext)
+   public StartableApplicationPublisher(ResourceBinder resources, ExoContainerContext containerContext)
    {
       super(resources, ProviderBinder.getInstance());
-      if (initParams != null)
-      {
-         for (Object cl : initParams.getValuesParam("ws.rest.components").getValues())
-         {
-            try
-            {
-               deploy(Class.forName((String)cl));
-            }
-            catch (ClassNotFoundException e)
-            {
-               LOG.error("Failed load class " + cl, e);
-            }
-         }
-      }
-
-      ExoContainer container = containerContext.getContainer();
-      List<Application> applications = container.getComponentInstancesOfType(Application.class);
-      for (Application a : applications)
-      {
-         deploy(a);
-      }
-      for (Object resource : container.getComponentInstancesOfType(ResourceContainer.class))
-      {
-         deploy(resource);
-      }
+      container = containerContext.getContainer();
    }
 
    /**
     * {@inheritDoc}
     */
-   public Object getInstanceOfType(Parameter parameter)
+   public Object getComponent(Parameter parameter)
    {
+      // Container can different.
       ExoContainer container = ExoContainerContext.getCurrentContainer();
-      
+
       if (parameter instanceof FieldInjector)
       {
          for (Annotation a : parameter.getAnnotations())
@@ -103,8 +72,12 @@ public class RestInitializer extends ApplicationDeployer implements DependencySu
    /**
     * {@inheritDoc}
     */
+   @SuppressWarnings("unchecked")
    public void start()
    {
+      List<Application> applications = container.getComponentInstancesOfType(Application.class);
+      for (Application application : applications)
+         publish(application);
    }
 
    /**
@@ -113,4 +86,5 @@ public class RestInitializer extends ApplicationDeployer implements DependencySu
    public void stop()
    {
    }
+
 }

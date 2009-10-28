@@ -51,21 +51,29 @@
       </init-params>
    </component>
    <component>
-      <type>org.exoplatform.services.rest.impl.RestInitializer</type>
+      <type>org.exoplatform.services.rest.impl.ExoJAXRSApplication</type>
       <init-params>
          <values-param>
             <name>ws.rest.components</name>
-            <value>org.exoplatform.services.rest.ext.provider.HierarchicalPropertyEntityProvider</value>
-            <value>org.exoplatform.services.rest.ext.filter.MethodOverrideFilter</value>
-            <value>org.exoplatform.services.rest.ext.method.filter.MethodAccessFilter</value>
+            <value>org.exoplatform.services.rest.impl.StartableApplicationPublisherTest$FakeEntityProvider</value>
+            <value>org.exoplatform.services.rest.impl.StartableApplicationPublisherTest$FakeRequestFilter</value>
+            <value>org.exoplatform.services.rest.impl.StartableApplicationPublisherTest$FakeResponseFilter</value>
+            <value>org.exoplatform.services.rest.impl.StartableApplicationPublisherTest$FakeMethodInvokerFilter</value>
          </values-param>
       </init-params>
+   </component>
+   <component>
+      <type>org.exoplatform.services.rest.impl.StartableApplicationPublisher</type>
    </component>
    <component>
       <type>org.exoplatform.services.rest.impl.RequestHandlerImpl</type>
    </component>
    <component>
       <type>org.exoplatform.services.rest.impl.ResourceBinderImpl</type>
+   </component>
+   
+   <component>
+      <type>org.exoplatform.services.rest.impl.StartableApplicationPublisherTest$Resource1</type>
    </component>
 
 </configuration>

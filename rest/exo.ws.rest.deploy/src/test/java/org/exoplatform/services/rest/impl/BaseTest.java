@@ -18,31 +18,28 @@
  */
 package org.exoplatform.services.rest.impl;
 
-import org.exoplatform.services.rest.ResourceBinder;
+import org.exoplatform.container.StandaloneContainer;
+
+import junit.framework.TestCase;
 
 /**
  * @author <a href="mailto:andrey.parfonov@exoplatform.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  */
-public abstract class RestComponentDeployer
+public abstract class BaseTest extends TestCase
 {
 
-   protected RestComponentResolver resolver;
+   protected StandaloneContainer container;
 
-   public RestComponentDeployer(ResourceBinder resources, ProviderBinder providers)
+   public void setUp() throws Exception
    {
-      resolver = new RestComponentResolver(resources, providers);
+      StandaloneContainer.setConfigurationPath("src/test/resources/conf/standalone/test-configuration.xml");
+      container = StandaloneContainer.getInstance();
    }
-
-   public void deploy(Object instance)
+   
+   protected void setContext()
    {
-      resolver.addSingleton(instance);
-   }
-
-   @SuppressWarnings("unchecked")
-   public void deploy(Class clazz)
-   {
-      resolver.addPerRequest(clazz);
+      ApplicationContextImpl.setCurrent(new ApplicationContextImpl(null, null, ProviderBinder.getInstance()));
    }
 
 }

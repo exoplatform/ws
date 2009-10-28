@@ -38,7 +38,7 @@ public class SimpleDependencySupplier extends HashMap<Class<?>, Object> implemen
    /**
     * {@inheritDoc}
     */
-   public Object getInstanceOfType(Parameter parameter)
+   public Object getComponent(Parameter parameter)
    {
       if (parameter instanceof FieldInjector)
       {

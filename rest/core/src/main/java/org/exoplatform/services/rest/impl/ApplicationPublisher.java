@@ -18,34 +18,41 @@
  */
 package org.exoplatform.services.rest.impl;
 
-import javax.ws.rs.core.MediaType;
+import java.util.Set;
 
-import org.exoplatform.common.util.HierarchicalProperty;
+import org.exoplatform.services.rest.ResourceBinder;
+
+import javax.ws.rs.core.Application;
 
 /**
  * @author <a href="mailto:andrey.parfonov@exoplatform.com">Andrey Parfonov</a>
  * @version $Id$
  */
-public class RestInitializerTest extends BaseTest
+public class ApplicationPublisher
 {
 
-   public void setUp() throws Exception
+   protected RestComponentResolver resolver;
+
+   public ApplicationPublisher(ResourceBinder resources, ProviderBinder providers)
    {
-      super.setUp();
-      setContext();
+      resolver = new RestComponentResolver(resources, providers);
    }
 
-   // Check does we get all additional component specified in configuration.
-   public void testDeployAdditionalComponents()
+   @SuppressWarnings("unchecked")
+   public void publish(Application application)
    {
-      ProviderBinder providers = ProviderBinder.getInstance();
-      // XXX Able (no NPE) to use null instead "path" because UriPattern
-      // for filters in null and path will be never checked.
-      assertEquals(1, providers.getRequestFilters(null).size());
-      assertEquals(1, providers.getMethodInvokerFilters(null).size());
-      // -----
-      assertNotNull(providers.getMessageBodyReader(HierarchicalProperty.class, null, null,
-         MediaType.APPLICATION_XML_TYPE));
+      Set<Object> singletons = application.getSingletons();
+      if (singletons != null)
+      {
+         for (Object instance : singletons)
+            resolver.addSingleton(instance);
+      }
+      Set<Class<?>> perRequests = application.getClasses();
+      if (perRequests != null)
+      {
+         for (Class clazz : perRequests)
+            resolver.addPerRequest(clazz);
+      }
    }
 
 }
