@@ -50,7 +50,6 @@ public class RequestDispatcherTest extends AbstractResourceTest
       depInjector.put(InjectableComponent2.class, new InjectableComponent2());
 
       requestHandler = new RequestHandlerImpl(resources, depInjector);
-      requestHandler.init();
       
       // reset providers to be sure it is clean
       ProviderBinder.setInstance(new ProviderBinder());

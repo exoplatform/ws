@@ -18,7 +18,6 @@
  */
 package org.exoplatform.services.rest.impl;
 
-import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -259,43 +258,6 @@ public final class RequestHandlerImpl implements RequestHandler
          // reset application context
          ApplicationContextImpl.setCurrent(null);
       }
-   }
-
-   /**
-    * Startup initialization.
-    */
-   public void init()
-   {
-      // Directory for temporary files
-      final File tmpDir;
-      String tmpDirName = properties.get(WS_RS_TMP_DIR);
-      if (tmpDirName == null)
-      {
-         tmpDir = new File(System.getProperty("java.io.tmpdir") + File.separator + "ws_jaxrs");
-         properties.put(WS_RS_TMP_DIR, tmpDir.getPath());
-      }
-      else
-      {
-         tmpDir = new File(tmpDirName);
-      }
-
-      if (!tmpDir.exists())
-         tmpDir.mkdirs();
-
-      // Register Shutdown Hook for cleaning temporary files.
-      Runtime.getRuntime().addShutdownHook(new Thread()
-      {
-         public void run()
-         {
-            File[] files = tmpDir.listFiles();
-            for (File file : files)
-            {
-               if (file.exists())
-                  file.delete();
-            }
-         }
-      });
-
    }
 
 }

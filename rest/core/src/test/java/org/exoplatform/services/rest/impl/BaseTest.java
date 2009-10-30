@@ -47,7 +47,6 @@ public abstract class BaseTest extends TestCase
    {
       resources = new ResourceBinderImpl();
       requestHandler = new RequestHandlerImpl(resources, new SimpleDependencySupplier());
-      requestHandler.init();
 
       // reset providers to be sure it is clean
       ProviderBinder.setInstance(new ProviderBinder());

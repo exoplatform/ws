@@ -21,6 +21,7 @@ package org.exoplatform.services.rest.impl.provider;
 import org.exoplatform.services.rest.ApplicationContext;
 import org.exoplatform.services.rest.RequestHandler;
 import org.exoplatform.services.rest.impl.ApplicationContextImpl;
+import org.exoplatform.services.rest.impl.FileCollector;
 import org.exoplatform.services.rest.provider.EntityProvider;
 
 import java.io.ByteArrayOutputStream;
@@ -138,7 +139,7 @@ public class DataSourceEntityProvider implements EntityProvider<DataSource>
          return new ByteArrayDataSource(bout.toByteArray(), mimeType);
 
       // large data, use file
-      final File file = File.createTempFile("datasource", "tmp");
+      final File file = FileCollector.getInstance().createFile();
       OutputStream fout = new FileOutputStream(file);
 
       // copy data from byte array in file
