@@ -29,11 +29,6 @@ public interface RequestHandler
 {
 
    /**
-    * Temporary directory attribute name.
-    */
-   public static final String WS_RS_TMP_DIR = "ws.rs.tmpdir";
-
-   /**
     * Max buffer size attribute name. Entities that has size greater then
     * specified will be stored in temporary directory on file system during
     * entity processing.
