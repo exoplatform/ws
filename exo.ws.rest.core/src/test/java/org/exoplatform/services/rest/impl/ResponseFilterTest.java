@@ -18,9 +18,15 @@
  */
 package org.exoplatform.services.rest.impl;
 
+import java.io.ByteArrayInputStream;
+import java.util.HashMap;
+import java.util.List;
+
 import org.exoplatform.services.rest.Filter;
 import org.exoplatform.services.rest.GenericContainerResponse;
 import org.exoplatform.services.rest.ResponseFilter;
+import org.exoplatform.services.rest.tools.ResourceLauncher;
+import org.exoplatform.services.test.mock.MockHttpServletRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.POST;
@@ -34,10 +40,18 @@ import javax.ws.rs.ext.Providers;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  */
-public class ResponseFilterTest extends AbstractResourceTest
+public class ResponseFilterTest extends BaseTest
 {
+
+   private ResourceLauncher launcher;
+
+   public void setUp() throws Exception
+   {
+      super.setUp();
+      this.launcher = new ResourceLauncher(requestHandler);
+   }
 
    @Filter
    public static class ResponseFilter1 implements ResponseFilter
@@ -53,19 +67,15 @@ public class ResponseFilterTest extends AbstractResourceTest
 
       private HttpServletRequest httpRequest;
 
-//      private ResourceBinder binder; // exo container component
-
-      public ResponseFilter1(@Context Providers providers, @Context HttpServletRequest httpRequest/*,
-         ResourceBinder binder*/)
+      public ResponseFilter1(@Context Providers providers, @Context HttpServletRequest httpRequest)
       {
          this.providers = providers;
          this.httpRequest = httpRequest;
-//         this.binder = binder;
       }
 
       public void doFilter(GenericContainerResponse response)
       {
-         if (uriInfo != null && httpHeaders != null && providers != null && httpRequest != null /*&& binder != null*/)
+         if (uriInfo != null && httpHeaders != null && providers != null && httpRequest != null)
             response.setResponse(Response.status(200).entity("to be or not to be").type("text/plain").build());
       }
 
@@ -110,18 +120,21 @@ public class ResponseFilterTest extends AbstractResourceTest
    {
       Resource1 r = new Resource1();
       registry(r);
-      ContainerResponse resp = service("POST", "/a", "", null, null);
+      ContainerResponse resp = launcher.service("POST", "/a", "", null, null, null);
       assertEquals(204, resp.getStatus());
 
       // should not be any changes after add this
       providers.addResponseFilter(new ResponseFilter2());
-      resp = service("POST", "/a", "", null, null);
+      resp = launcher.service("POST", "/a", "", null, null, null);
       assertEquals(204, resp.getStatus());
 
       // add response filter and try again
       providers.addResponseFilter(ResponseFilter1.class);
 
-      resp = service("POST", "/a", "", null, null);
+      EnvironmentContext env = new EnvironmentContext();
+      env.put(HttpServletRequest.class, new MockHttpServletRequest("", new ByteArrayInputStream(new byte[0]), 0,
+         "POST", new HashMap<String, List<String>>()));
+      resp = launcher.service("POST", "/a", "", null, null, env);
       assertEquals(200, resp.getStatus());
       assertEquals("text/plain", resp.getContentType().toString());
       assertEquals("to be or not to be", resp.getEntity());
@@ -133,7 +146,7 @@ public class ResponseFilterTest extends AbstractResourceTest
    {
       Resource1 r = new Resource1();
       registry(r);
-      ContainerResponse resp = service("POST", "/a/b/c/d/e", "", null, null);
+      ContainerResponse resp = launcher.service("POST", "/a/b/c/d/e", "", null, null, null);
       assertEquals(200, resp.getStatus());
       assertEquals("text/plain", resp.getContentType().toString());
       assertEquals("{\"name\":\"andrew\", \"password\":\"hello\"}", resp.getEntity());
@@ -141,7 +154,7 @@ public class ResponseFilterTest extends AbstractResourceTest
       // add response filter and try again
       providers.addResponseFilter(new ResponseFilter2());
 
-      resp = service("POST", "/a/b/c/d/e", "", null, null);
+      resp = launcher.service("POST", "/a/b/c/d/e", "", null, null, null);
       assertEquals(200, resp.getStatus());
       assertEquals("application/json", resp.getContentType().toString());
       assertEquals("{\"name\":\"andrew\", \"password\":\"hello\"}", resp.getEntity());

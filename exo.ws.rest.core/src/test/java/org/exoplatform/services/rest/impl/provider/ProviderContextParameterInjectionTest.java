@@ -18,15 +18,21 @@
  */
 package org.exoplatform.services.rest.impl.provider;
 
-import org.exoplatform.services.rest.impl.AbstractResourceTest;
+import org.exoplatform.services.rest.impl.BaseTest;
+import org.exoplatform.services.rest.impl.EnvironmentContext;
 import org.exoplatform.services.rest.impl.ContainerResponse;
 import org.exoplatform.services.rest.provider.EntityProvider;
+import org.exoplatform.services.rest.tools.ResourceLauncher;
+import org.exoplatform.services.test.mock.MockHttpServletRequest;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -47,9 +53,9 @@ import javax.ws.rs.ext.Providers;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  */
-public class ProviderContextParameterInjectionTest extends AbstractResourceTest
+public class ProviderContextParameterInjectionTest extends BaseTest
 {
 
    public static class MockEntity
@@ -170,6 +176,8 @@ public class ProviderContextParameterInjectionTest extends AbstractResourceTest
 
    }
 
+   private ResourceLauncher launcher;
+
    public void setUp() throws Exception
    {
       super.setUp();
@@ -177,6 +185,7 @@ public class ProviderContextParameterInjectionTest extends AbstractResourceTest
       providers.addMessageBodyWriter(EntityProviderChecker.class);
       providers.addExceptionMapper(ExceptionMapperChecker.class);
       providers.addContextResolver(ContextResolverChecker.class);
+      this.launcher = new ResourceLauncher(requestHandler);
    }
 
    public void tearDown() throws Exception
@@ -217,17 +226,20 @@ public class ProviderContextParameterInjectionTest extends AbstractResourceTest
       }
    }
 
-   public void test0() throws Exception
+   public void testParameterInjection() throws Exception
    {
       registry(Resource1.class);
 
-      ContainerResponse resp = service("GET", "/a/1", "", null, "to be or not to be".getBytes());
+      EnvironmentContext env = new EnvironmentContext();
+      env.put(HttpServletRequest.class, new MockHttpServletRequest("", new ByteArrayInputStream(new byte[0]), 0, "GET",
+         new HashMap<String, List<String>>()));
+      ContainerResponse resp = launcher.service("GET", "/a/1", "", null, "to be or not to be".getBytes(), env);
       assertEquals("to be", ((MockEntity)resp.getEntity()).entity);
 
-      resp = service("GET", "/a/2", "", null, null);
+      resp = launcher.service("GET", "/a/2", "", null, null, env);
       assertEquals(200, resp.getStatus());
 
-      resp = service("GET", "/a/3", "", null, null);
+      resp = launcher.service("GET", "/a/3", "", null, null, env);
       assertEquals(200, resp.getStatus());
       assertEquals("to be to not to be", resp.getEntity());
 

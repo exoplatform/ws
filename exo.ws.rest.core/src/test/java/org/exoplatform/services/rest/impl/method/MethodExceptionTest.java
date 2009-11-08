@@ -18,8 +18,9 @@
  */
 package org.exoplatform.services.rest.impl.method;
 
-import org.exoplatform.services.rest.impl.AbstractResourceTest;
+import org.exoplatform.services.rest.impl.BaseTest;
 import org.exoplatform.services.rest.impl.UnhandledException;
+import org.exoplatform.services.rest.tools.ResourceLauncher;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -33,7 +34,7 @@ import javax.ws.rs.core.Response;
  * @author <a href="mailto:dmitry.kataev@exoplatform.com.ua">Dmytro Katayev</a>
  * @version $Id: TestMethodException.java
  */
-public class MethodExceptionTest extends AbstractResourceTest
+public class MethodExceptionTest extends BaseTest
 {
 
    @SuppressWarnings("serial")
@@ -79,16 +80,24 @@ public class MethodExceptionTest extends AbstractResourceTest
 
    }
 
+   private ResourceLauncher launcher;
+
+   public void setUp() throws Exception
+   {
+      super.setUp();
+      this.launcher = new ResourceLauncher(requestHandler);
+   }
+
    public void testExceptionProcessing() throws Exception
    {
       Resource1 resource = new Resource1();
       registry(resource);
 
-      assertEquals(500, service("GET", "/a/0", "", null, null).getStatus());
-      assertEquals(500, service("GET", "/a/1", "", null, null).getStatus());
+      assertEquals(500, launcher.service("GET", "/a/0", "", null, null, null).getStatus());
+      assertEquals(500, launcher.service("GET", "/a/1", "", null, null, null).getStatus());
       try
       {
-         assertEquals(500, service("GET", "/a/2", "", null, null).getStatus());
+         assertEquals(500, launcher.service("GET", "/a/2", "", null, null, null).getStatus());
          fail();
       }
       catch (UnhandledException e)

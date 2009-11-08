@@ -18,9 +18,15 @@
  */
 package org.exoplatform.services.rest.impl;
 
+import java.io.ByteArrayInputStream;
+import java.util.HashMap;
+import java.util.List;
+
 import org.exoplatform.services.rest.Filter;
 import org.exoplatform.services.rest.GenericContainerRequest;
 import org.exoplatform.services.rest.RequestFilter;
+import org.exoplatform.services.rest.tools.ResourceLauncher;
+import org.exoplatform.services.test.mock.MockHttpServletRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
@@ -34,10 +40,18 @@ import javax.ws.rs.ext.Providers;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id: $
+ * @version $Id$
  */
-public class RequestFilterTest extends AbstractResourceTest
+public class RequestFilterTest extends BaseTest
 {
+
+   private ResourceLauncher launcher;
+
+   public void setUp() throws Exception
+   {
+      super.setUp();
+      this.launcher = new ResourceLauncher(requestHandler);
+   }
 
    @Filter
    public static class RequestFilter1 implements RequestFilter
@@ -53,18 +67,15 @@ public class RequestFilterTest extends AbstractResourceTest
 
       private HttpServletRequest httpRequest;
 
-//      private ResourceBinder binder; // exo container component
-
-      public RequestFilter1(@Context Providers providers, @Context HttpServletRequest httpRequest/*, ResourceBinder binder*/)
+      public RequestFilter1(@Context Providers providers, @Context HttpServletRequest httpRequest)
       {
          this.providers = providers;
          this.httpRequest = httpRequest;
-//         this.binder = binder;
       }
 
       public void doFilter(GenericContainerRequest request)
       {
-         if (uriInfo != null && httpHeaders != null && providers != null && httpRequest != null/* && binder != null*/)
+         if (uriInfo != null && httpHeaders != null && providers != null && httpRequest != null)
             request.setMethod("POST");
       }
 
@@ -109,7 +120,7 @@ public class RequestFilterTest extends AbstractResourceTest
    public void testWithoutFilter1() throws Exception
    {
       registry(Resource1.class);
-      ContainerResponse resp = service("GET", "/a", "", null, null);
+      ContainerResponse resp = launcher.service("GET", "/a", "", null, null, null);
       assertEquals(405, resp.getStatus());
       assertEquals(1, resp.getHttpHeaders().get("allow").size());
       assertTrue(resp.getHttpHeaders().get("allow").get(0).toString().contains("POST"));
@@ -122,9 +133,12 @@ public class RequestFilterTest extends AbstractResourceTest
 
       // add filter that can change method
       providers.addRequestFilter(RequestFilter1.class);
+      EnvironmentContext env = new EnvironmentContext();
+      env.put(HttpServletRequest.class, new MockHttpServletRequest("", new ByteArrayInputStream(new byte[0]), 0,
+         "GET", new HashMap<String, List<String>>()));
 
       // should get status 204
-      ContainerResponse resp = service("GET", "/a", "", null, null);
+      ContainerResponse resp = launcher.service("GET", "/a", "", null, null, env);
       assertEquals(204, resp.getStatus());
 
       unregistry(Resource1.class);
@@ -134,7 +148,7 @@ public class RequestFilterTest extends AbstractResourceTest
    public void testFilter2() throws Exception
    {
       registry(Resource1.class);
-      ContainerResponse resp = service("GET", "/a/b/c/d/e", "", null, null);
+      ContainerResponse resp = launcher.service("GET", "/a/b/c/d/e", "", null, null, null);
       assertEquals(405, resp.getStatus());
       assertEquals(1, resp.getHttpHeaders().get("allow").size());
       assertTrue(resp.getHttpHeaders().get("allow").get(0).toString().contains("DELETE"));
@@ -143,7 +157,7 @@ public class RequestFilterTest extends AbstractResourceTest
       providers.addRequestFilter(new RequestFilter2());
 
       // not should get status 204
-      resp = service("GET", "/a/b/c/d/e", "", null, null);
+      resp = launcher.service("GET", "/a/b/c/d/e", "", null, null, null);
       assertEquals(204, resp.getStatus());
 
       unregistry(Resource1.class);
