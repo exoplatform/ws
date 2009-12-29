@@ -178,6 +178,12 @@ public final class RequestHandlerImpl implements RequestHandler
                         errorResponse = excmap.toResponse(e);
                      }
                   }
+
+                  if (e.getMessage() != null)
+                     errorResponse =
+                        Response.status(errorResponse.getStatus()).entity(new String(e.getMessage())).type(
+                           MediaType.TEXT_PLAIN).header("JAXRS-Message-Provided", "true").build();
+
                   response.setResponse(errorResponse);
                }
                else
@@ -202,10 +208,17 @@ public final class RequestHandlerImpl implements RequestHandler
                            LOG.warn("WedApplication exception occurs.", e.getCause());
                         }
 
-                        // add stack trace as message body
-                        errorResponse =
-                           Response.status(errorResponse.getStatus()).entity(new ErrorStreaming(e)).type(
-                              MediaType.TEXT_PLAIN).build();
+                        // print stack trace & adding ex message into body
+                        if (LOG.isDebugEnabled())
+                        {
+                           e.printStackTrace();
+                        }
+                        if (e.getMessage() != null)
+                           errorResponse =
+                              Response.status(errorResponse.getStatus()).entity(new String(e.getMessage())).type(
+                                 MediaType.TEXT_PLAIN).header("JAXRS-Message-Provided", "true").build();
+                        else
+                           errorResponse =  Response.status(errorResponse.getStatus()).header("JAXRS-Message-Provided", "false").build();
                      }
                   }
                   response.setResponse(errorResponse);
