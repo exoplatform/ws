@@ -175,5 +175,11 @@ public interface ExtHttpHeaders extends HttpHeaders
     * Field Definitions sec. 14.41 Transfer-Encoding</a>.
     */
    public static final String TRANSFER_ENCODING = "Transfer-Encoding";
-
+   
+   /**
+    * This header indicates that body is provided via JAXR framework.
+    * Value of header MAY contain additional information about the nature
+    * of body's content, for example: 'Error-Message'. 
+    */
+   public static final String JAXRS_BODY_PROVIDED = "JAXRS-Body-Provided";
 }
