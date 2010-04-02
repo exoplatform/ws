@@ -44,7 +44,7 @@ import javax.ws.rs.core.Context;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public class ParameterHelper
 {
@@ -89,10 +89,10 @@ public class ParameterHelper
    {
       PROVIDER_FIELDS_ANNOTATIONS =
          Collections.unmodifiableList(Arrays.asList(Context.class.getName(), Property.class.getName()));
-
+      
       PROVIDER_CONSTRUCTOR_PARAMETER_ANNOTATIONS =
          Collections.unmodifiableList(Arrays.asList(Context.class.getName(), Property.class.getName()));
-
+      
       List<String> tmp1 = new ArrayList<String>(7);
       tmp1.add(CookieParam.class.getName());
       tmp1.add(Context.class.getName());

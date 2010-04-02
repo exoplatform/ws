@@ -21,11 +21,9 @@ package org.exoplatform.services.rest.impl;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.rest.ApplicationContext;
-import org.exoplatform.services.rest.ComponentLifecycleScope;
 import org.exoplatform.services.rest.GenericContainerRequest;
 import org.exoplatform.services.rest.GenericContainerResponse;
 import org.exoplatform.services.rest.ObjectFactory;
-import org.exoplatform.services.rest.ResourceBinder;
 import org.exoplatform.services.rest.SingletonObjectFactory;
 import org.exoplatform.services.rest.impl.header.HeaderHelper;
 import org.exoplatform.services.rest.impl.header.MediaTypeHelper;
@@ -58,7 +56,7 @@ import javax.ws.rs.core.Response.Status;
  * Lookup resource which can serve request.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public final class RequestDispatcher
 {
@@ -66,7 +64,7 @@ public final class RequestDispatcher
    /**
     * Logger.
     */
-   private static final Log LOG = ExoLogger.getLogger(RequestDispatcher.class.getName());
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.rest.core.RequestDispatcher");
 
    /**
     * See {@link ResourceBinder}.
@@ -333,8 +331,7 @@ public final class RequestDispatcher
       MethodInvoker invoker = srld.getMethodInvoker();
       resource = invoker.invokeMethod(resource, srld, context);
 
-      AbstractResourceDescriptor descriptor =
-         new AbstractResourceDescriptorImpl(resource.getClass(), ComponentLifecycleScope.SINGLETON);
+      AbstractResourceDescriptor descriptor = new AbstractResourceDescriptorImpl(resource);
       SingletonObjectFactory<AbstractResourceDescriptor> locResource =
          new SingletonObjectFactory<AbstractResourceDescriptor>(descriptor, resource);
 

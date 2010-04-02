@@ -40,7 +40,7 @@ import javax.ws.rs.ext.MessageBodyWriter;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public class ContainerResponse implements GenericContainerResponse
 {
@@ -48,7 +48,7 @@ public class ContainerResponse implements GenericContainerResponse
    /**
     * Logger.
     */
-   private static final Log LOG = ExoLogger.getLogger(ContainerResponse.class.getName());
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.rest.core.ContainerResponse");
 
    /**
     * See {@link ContainerResponseWriter}.

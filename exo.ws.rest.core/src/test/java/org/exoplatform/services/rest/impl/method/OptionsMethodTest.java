@@ -18,8 +18,7 @@
  */
 package org.exoplatform.services.rest.impl.method;
 
-import org.exoplatform.services.rest.impl.BaseTest;
-import org.exoplatform.services.rest.tools.ResourceLauncher;
+import org.exoplatform.services.rest.AbstractResourceTest;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -37,7 +36,7 @@ import javax.ws.rs.Path;
  * @author <a href="mailto:dmitry.kataev@exoplatform.com.ua">Dmytro Katayev</a>
  * @version $Id: OptionsMethodTest.java
  */
-public class OptionsMethodTest extends BaseTest
+public class OptionsMethodTest extends AbstractResourceTest
 {
 
    @Target(ElementType.METHOD)
@@ -71,25 +70,17 @@ public class OptionsMethodTest extends BaseTest
 
    }
 
-   private ResourceLauncher launcher;
-
-   public void setUp() throws Exception
-   {
-      super.setUp();
-      this.launcher = new ResourceLauncher(requestHandler);
-   }
-
    public void testOptionsMethod() throws Exception
    {
       Resource1 resource1 = new Resource1();
       registry(resource1);
-      assertEquals("options", launcher.service("OPTIONS", "/a", "", null, null, null).getEntity());
+      assertEquals("options", service("OPTIONS", "/a", "", null, null).getEntity());
       unregistry(resource1);
 
       Resource2 resource2 = new Resource2();
       registry(resource2);
-      assertEquals(200, launcher.service("OPTIONS", "/b", "", null, null, null).getStatus());
-      assertNotNull(launcher.service("OPTIONS", "/b", "", null, null, null).getResponse().getMetadata());
+      assertEquals(200, service("OPTIONS", "/b", "", null, null).getStatus());
+      assertNotNull(service("OPTIONS", "/b", "", null, null).getResponse().getMetadata());
 
    }
 

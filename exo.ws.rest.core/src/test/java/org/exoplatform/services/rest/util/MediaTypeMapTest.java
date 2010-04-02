@@ -18,7 +18,7 @@
  */
 package org.exoplatform.services.rest.util;
 
-import org.exoplatform.services.rest.impl.BaseTest;
+import org.exoplatform.services.rest.BaseTest;
 
 import java.util.Iterator;
 

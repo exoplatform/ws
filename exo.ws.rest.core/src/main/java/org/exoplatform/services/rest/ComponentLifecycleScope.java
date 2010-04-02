@@ -30,4 +30,8 @@ public enum ComponentLifecycleScope {
     * Singleton lifecycle.
     */
    SINGLETON,
+   /**
+    * Inversion-of-control framework controls component's lifecycle.
+    */
+   CONTAINER
 }

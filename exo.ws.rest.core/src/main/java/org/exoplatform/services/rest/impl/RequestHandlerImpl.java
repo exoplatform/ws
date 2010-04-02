@@ -18,10 +18,13 @@
  */
 package org.exoplatform.services.rest.impl;
 
+import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
@@ -30,67 +33,48 @@ import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.ext.ExceptionMapper;
 
+import org.exoplatform.container.component.ComponentPlugin;
+import org.exoplatform.container.xml.InitParams;
+import org.exoplatform.container.xml.ValueParam;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.rest.ApplicationContext;
-import org.exoplatform.services.rest.DependencySupplier;
+import org.exoplatform.services.rest.ExtHttpHeaders;
 import org.exoplatform.services.rest.FilterDescriptor;
 import org.exoplatform.services.rest.GenericContainerRequest;
 import org.exoplatform.services.rest.GenericContainerResponse;
 import org.exoplatform.services.rest.ObjectFactory;
 import org.exoplatform.services.rest.RequestFilter;
 import org.exoplatform.services.rest.RequestHandler;
-import org.exoplatform.services.rest.ResourceBinder;
 import org.exoplatform.services.rest.ResponseFilter;
-import org.exoplatform.services.rest.ExtHttpHeaders;
+import org.exoplatform.services.rest.impl.method.MethodInvokerFilterComponentPlugin;
+import org.exoplatform.services.rest.impl.provider.EntityProviderComponentPlugin;
+import org.exoplatform.services.rest.method.MethodInvokerFilter;
+import org.exoplatform.services.rest.provider.EntityProvider;
+import org.picocontainer.Startable;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
-public final class RequestHandlerImpl implements RequestHandler
+public final class RequestHandlerImpl implements RequestHandler, Startable
 {
-
-   /**
-    * For writing error message.
-    */
-   static class ErrorStreaming implements StreamingOutput
-   {
-
-      /**
-       * Exception which should send to client.
-       */
-      private final Exception e;
-
-      /**
-       * @param e Exception for serialization
-       */
-      ErrorStreaming(Exception e)
-      {
-         this.e = e;
-      }
-
-      /**
-       * {@inheritDoc}
-       */
-      public void write(OutputStream output)
-      {
-         PrintWriter pw = new PrintWriter(output);
-         e.printStackTrace(pw);
-         pw.flush();
-      }
-   }
 
    /**
     * Logger.
     */
-   private static final Log LOG = ExoLogger.getLogger(RequestHandlerImpl.class.getName());
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.rest.core.RequestHandlerImpl");
 
    /**
     * Application properties. Properties from this map will be copied to ApplicationContext
     * and may be accessible via method {@link ApplicationContextImpl#getProperties()}. 
     */
    private static final Map<String, String> properties = new HashMap<String, String>();
+
+   /**
+    * See {@link RequestDispatcher}.
+    */
+   private final RequestDispatcher dispatcher;
 
    public static final String getProperty(String name)
    {
@@ -105,31 +89,27 @@ public final class RequestHandlerImpl implements RequestHandler
    }
 
    /**
-    * See {@link RequestDispatcher}.
+    * Constructs new instance of {@link RequestHandler}.
+    * 
+    * @param dispatcher See {@link RequestDispatcher}
+    * @param params init parameters
     */
-   private final RequestDispatcher dispatcher;
-
-   /**
-    * ResourceBinder.
-    */
-   private final ResourceBinder binder;
-
-   private final DependencySupplier depInjector;
-
-   public RequestHandlerImpl(ResourceBinder binder, DependencySupplier depInjector)
+   public RequestHandlerImpl(RequestDispatcher dispatcher, InitParams params)
    {
-      this.binder = binder;
-      this.dispatcher = new RequestDispatcher(binder);
-      this.depInjector = depInjector;
+      if (params != null)
+      {
+         for (Iterator<ValueParam> i = params.getValueParamIterator(); i.hasNext();)
+         {
+            ValueParam vp = i.next();
+            properties.put(vp.getName(), vp.getValue());
+         }
+      }
+
+      this.dispatcher = dispatcher;
+
    }
 
-   /**
-    * {@inheritDoc}
-    */
-   public ResourceBinder getResourceBinder()
-   {
-      return binder;
-   }
+   // RequestHandler
 
    /**
     * {@inheritDoc}
@@ -141,7 +121,6 @@ public final class RequestHandlerImpl implements RequestHandler
       {
          ApplicationContext context = new ApplicationContextImpl(request, response, ProviderBinder.getInstance());
          context.getProperties().putAll(properties);
-         context.setDependencyInjector(depInjector);
          ApplicationContextImpl.setCurrent(context);
 
          for (ObjectFactory<FilterDescriptor> factory : ProviderBinder.getInstance().getRequestFilters(
@@ -163,6 +142,7 @@ public final class RequestHandlerImpl implements RequestHandler
                   response.getHttpHeaders().putSingle(ExtHttpHeaders.JAXRS_BODY_PROVIDED, jaxrsHeader);
                }
             }
+
          }
          catch (Exception e)
          {
@@ -248,6 +228,7 @@ public final class RequestHandlerImpl implements RequestHandler
                throw new UnhandledException(e);
             }
          }
+
          for (ObjectFactory<FilterDescriptor> factory : ProviderBinder.getInstance().getResponseFilters(
             context.getPath()))
          {
@@ -284,6 +265,12 @@ public final class RequestHandlerImpl implements RequestHandler
       return responseBuilder.build();
    }
 
+   /**
+    * Get JAXR header for response status.
+    * 
+    * @param status response status
+    * @return JAXRS header or null.
+    */
    private String getJaxrsHeader(int status)
    {
       if (status >= 400)
@@ -293,4 +280,134 @@ public final class RequestHandlerImpl implements RequestHandler
       // Add required behavior here.
       return null;
    }
+
+   //
+
+   /**
+    * For writing error message.
+    */
+   static class ErrorStreaming implements StreamingOutput
+   {
+
+      /**
+       * Exception which should send to client.
+       */
+      private final Exception e;
+
+      /**
+       * @param e Exception for serialization
+       */
+      ErrorStreaming(Exception e)
+      {
+         this.e = e;
+      }
+
+      /**
+       * {@inheritDoc}
+       */
+      public void write(OutputStream output)
+      {
+         PrintWriter pw = new PrintWriter(output);
+         e.printStackTrace(pw);
+         pw.flush();
+      }
+
+   }
+
+   // Startable
+
+   /**
+    * {@inheritDoc}
+    */
+   public void start()
+   {
+      init();
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   public void stop()
+   {
+   }
+
+   //
+
+   /**
+    * Startup initialization.
+    */
+   public void init()
+   {
+      // Directory for temporary files
+      final File tmpDir;
+      String tmpDirName = properties.get(WS_RS_TMP_DIR);
+      if (tmpDirName == null)
+      {
+         tmpDir = new File(System.getProperty("java.io.tmpdir") + File.separator + "ws_jaxrs");
+         properties.put(WS_RS_TMP_DIR, tmpDir.getPath());
+      }
+      else
+      {
+         tmpDir = new File(tmpDirName);
+      }
+
+      if (!tmpDir.exists())
+         tmpDir.mkdirs();
+
+      // Register Shutdown Hook for cleaning temporary files.
+      Runtime.getRuntime().addShutdownHook(new Thread()
+      {
+         public void run()
+         {
+            File[] files = tmpDir.listFiles();
+            for (File file : files)
+            {
+               if (file.exists())
+                  file.delete();
+            }
+         }
+      });
+
+   }
+
+   /**
+    * Processing {@link ComponentPlugin} for injection external components.
+    * 
+    * @param plugin See {@link ComponentPlugin}
+    */
+   @SuppressWarnings("unchecked")
+   public void addPlugin(ComponentPlugin plugin)
+   {
+      // NOTE!!! ProviderBinder should be already initialized by ResourceBinder
+      ProviderBinder providers = ProviderBinder.getInstance();
+      if (MethodInvokerFilterComponentPlugin.class.isAssignableFrom(plugin.getClass()))
+      {
+         // add method invoker filter
+         for (Class<? extends MethodInvokerFilter> filter : ((MethodInvokerFilterComponentPlugin)plugin).getFilters())
+            providers.addMethodInvokerFilter(filter);
+      }
+      else if (EntityProviderComponentPlugin.class.isAssignableFrom(plugin.getClass()))
+      {
+         // add external entity providers
+         Set<Class<? extends EntityProvider>> eps = ((EntityProviderComponentPlugin)plugin).getEntityProviders();
+         for (Class<? extends EntityProvider> ep : eps)
+         {
+            providers.addMessageBodyReader(ep);
+            providers.addMessageBodyWriter(ep);
+         }
+      }
+      else if (RequestFilterComponentPlugin.class.isAssignableFrom(plugin.getClass()))
+      {
+         Set<Class<? extends RequestFilter>> filters = ((RequestFilterComponentPlugin)plugin).getFilters();
+         for (Class<? extends RequestFilter> filter : filters)
+            providers.addRequestFilter(filter);
+      }
+      else if (ResponseFilterComponentPlugin.class.isAssignableFrom(plugin.getClass()))
+      {
+         Set<Class<? extends ResponseFilter>> filters = ((ResponseFilterComponentPlugin)plugin).getFilters();
+         for (Class<? extends ResponseFilter> filter : filters)
+            providers.addResponseFilter(filter);
+      }
+   }
+
 }

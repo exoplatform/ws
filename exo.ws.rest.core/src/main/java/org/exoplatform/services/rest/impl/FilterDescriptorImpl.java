@@ -35,7 +35,7 @@ import javax.ws.rs.Path;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public class FilterDescriptorImpl implements FilterDescriptor
 {
@@ -68,11 +68,27 @@ public class FilterDescriptorImpl implements FilterDescriptor
    private final List<FieldInjector> fields;
 
    /**
+    * @param filterClass {@link Class} of filter
+    */
+   public FilterDescriptorImpl(Class<?> filterClass)
+   {
+      this(filterClass, ComponentLifecycleScope.PER_REQUEST);
+   }
+
+   /**
+    * @param filter instance
+    */
+   public FilterDescriptorImpl(Object filter)
+   {
+      this(filter.getClass(), ComponentLifecycleScope.SINGLETON);
+   }
+
+   /**
     * @param filterClass filter class
     * @param scope filter scope
     * @see ComponentLifecycleScope
     */
-   public FilterDescriptorImpl(Class<?> filterClass, ComponentLifecycleScope scope)
+   private FilterDescriptorImpl(Class<?> filterClass, ComponentLifecycleScope scope)
    {
       final Path p = filterClass.getAnnotation(Path.class);
       if (p != null)

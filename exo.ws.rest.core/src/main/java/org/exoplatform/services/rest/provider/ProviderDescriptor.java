@@ -30,7 +30,7 @@ import javax.ws.rs.core.MediaType;
  * implement interface defined by JAX-RS.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public interface ProviderDescriptor extends ResourceDescriptor, ObjectModel
 {

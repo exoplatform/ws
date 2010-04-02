@@ -18,7 +18,6 @@
  */
 package org.exoplatform.services.rest.impl.provider;
 
-import org.exoplatform.services.rest.impl.FileCollector;
 import org.exoplatform.services.rest.provider.EntityProvider;
 
 import java.io.File;
@@ -36,7 +35,7 @@ import javax.ws.rs.ext.Provider;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 @Provider
 public class FileEntityProvider implements EntityProvider<File>
@@ -56,7 +55,7 @@ public class FileEntityProvider implements EntityProvider<File>
    public File readFrom(Class<File> type, Type genericType, Annotation[] annotations, MediaType mediaType,
       MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException
    {
-      File f = FileCollector.getInstance().createFile();
+      File f = File.createTempFile("ws_rs", "tmp");
       OutputStream out = new FileOutputStream(f);
       try
       {

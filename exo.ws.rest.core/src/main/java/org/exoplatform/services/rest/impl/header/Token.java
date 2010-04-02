@@ -23,7 +23,7 @@ package org.exoplatform.services.rest.impl.header;
  * {@link HeaderHelper#isToken(String)} . Token is separated by ','
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public class Token
 {

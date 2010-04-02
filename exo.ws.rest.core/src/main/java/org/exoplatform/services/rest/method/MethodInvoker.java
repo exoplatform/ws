@@ -27,7 +27,7 @@ import org.exoplatform.services.rest.resource.GenericMethodResource;
  * 
  * @see GenericMethodResource
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public interface MethodInvoker
 {

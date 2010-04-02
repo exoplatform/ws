@@ -25,7 +25,7 @@ import javax.ws.rs.core.Cookie;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public class CookieParameterResolver extends ParameterResolver<CookieParam>
 {

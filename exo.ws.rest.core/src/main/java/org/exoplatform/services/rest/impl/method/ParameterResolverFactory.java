@@ -32,7 +32,7 @@ import org.exoplatform.services.rest.Property;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public final class ParameterResolverFactory
 {
@@ -70,8 +70,6 @@ public final class ParameterResolverFactory
          return new QueryParameterResolver((QueryParam)annotation);
       if (clazz == Property.class)
          return new PropertyResolver((Property)annotation);
-//      if (clazz == Inject.class)
-//         return new InjectableProvider((Inject)annotation);
       return null;
    }
 

@@ -19,7 +19,7 @@
 package org.exoplatform.services.rest.ext.service;
 
 import org.exoplatform.services.rest.ObjectFactory;
-import org.exoplatform.services.rest.ResourceBinder;
+import org.exoplatform.services.rest.impl.ResourceBinder;
 import org.exoplatform.services.rest.resource.AbstractResourceDescriptor;
 
 import java.io.ByteArrayOutputStream;

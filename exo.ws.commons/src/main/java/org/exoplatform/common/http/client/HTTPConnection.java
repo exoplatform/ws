@@ -303,7 +303,7 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
    /** controls whether modules are allowed to interact with user */
    private boolean allowUI;
 
-   private static final Log log = ExoLogger.getLogger("ws.commons.httpclient.HTTPConnection");
+   private static final Log log = ExoLogger.getLogger("exo.ws.commons.HTTPConnection");
 
    static
    {
@@ -892,6 +892,7 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
     *              socket.
     * @exception ModuleException if an exception is encountered in any module.
     */
+   @Deprecated
    public HTTPResponse Get(String file, String query) throws IOException, ModuleException
    {
       return Get(file, query, null);
@@ -908,6 +909,7 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
     *              socket.
     * @exception ModuleException if an exception is encountered in any module.
     */
+   @Deprecated
    public HTTPResponse Get(String file, String query, NVPair[] headers) throws IOException, ModuleException
    {
       String File = stripRef(file);

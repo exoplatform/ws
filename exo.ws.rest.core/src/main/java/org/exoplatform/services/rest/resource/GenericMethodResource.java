@@ -30,7 +30,7 @@ import java.util.List;
  * {@link SubResourceLocatorDescriptor} .
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public interface GenericMethodResource
 {

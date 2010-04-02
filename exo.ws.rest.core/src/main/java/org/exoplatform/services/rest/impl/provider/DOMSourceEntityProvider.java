@@ -47,7 +47,7 @@ import javax.xml.transform.stream.StreamResult;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 @Provider
 @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
@@ -58,7 +58,7 @@ public class DOMSourceEntityProvider implements EntityProvider<DOMSource>
    /**
     * Logger.
     */
-   private static final Log LOG = ExoLogger.getLogger(DOMSourceEntityProvider.class.getName());
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.rest.core.DOMSourceEntityProvider");
 
    /**
     * {@inheritDoc}

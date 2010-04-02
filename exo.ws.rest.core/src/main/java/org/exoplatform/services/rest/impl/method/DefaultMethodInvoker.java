@@ -46,7 +46,7 @@ import javax.ws.rs.ext.MessageBodyReader;
  * Invoker for Resource Method, Sub-Resource Method and SubResource Locator.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public final class DefaultMethodInvoker implements MethodInvoker
 {
@@ -54,7 +54,7 @@ public final class DefaultMethodInvoker implements MethodInvoker
    /**
     * Logger.
     */
-   private static final Log LOG = ExoLogger.getLogger(DefaultMethodInvoker.class.getName());
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.rest.core.DefaultMethodInvoker");
 
    /**
     * {@inheritDoc}

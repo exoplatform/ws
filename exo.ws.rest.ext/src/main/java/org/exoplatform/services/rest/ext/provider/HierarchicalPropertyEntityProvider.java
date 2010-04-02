@@ -34,7 +34,6 @@ import java.util.Stack;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.Provider;
 import javax.xml.namespace.QName;
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLEventReader;
@@ -54,14 +53,13 @@ import javax.xml.transform.stream.StreamResult;
  * @author <a href="dkatayev@gmail.com">Dmytro Katayev</a>
  * @version $Id: HierarchicalPropertyEntityProvider.java
  */
-@Provider
 public class HierarchicalPropertyEntityProvider implements EntityProvider<HierarchicalProperty>
 {
 
    /**
     * Logger.
     */
-   private static final Log LOG = ExoLogger.getLogger(HierarchicalPropertyEntityProvider.class.getName());
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.rest.ext.HierarchicalPropertyEntityProvider");
 
    /**
     * {@inheritDoc}

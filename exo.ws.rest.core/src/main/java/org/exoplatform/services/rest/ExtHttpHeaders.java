@@ -22,7 +22,7 @@ import javax.ws.rs.core.HttpHeaders;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public interface ExtHttpHeaders extends HttpHeaders
 {
@@ -120,6 +120,13 @@ public interface ExtHttpHeaders extends HttpHeaders
     * Headers for Distributed Authoring</a> section 9 for more information.
     */
    public static final String IF = "If";
+   
+   /**
+    * This header indicates that body is provided via JAXR framework.
+    * Value of header MAY contain additional information about the nature
+    * of body's content, for example: 'Error-Message'. 
+    */
+   public static final String JAXRS_BODY_PROVIDED = "JAXRS-Body-Provided";
 
    /**
     * WebDav "Timeout" header. See <a href='http://www.ietf.org/rfc/rfc2518.txt'>
@@ -175,11 +182,5 @@ public interface ExtHttpHeaders extends HttpHeaders
     * Field Definitions sec. 14.41 Transfer-Encoding</a>.
     */
    public static final String TRANSFER_ENCODING = "Transfer-Encoding";
-   
-   /**
-    * This header indicates that body is provided via JAXR framework.
-    * Value of header MAY contain additional information about the nature
-    * of body's content, for example: 'Error-Message'. 
-    */
-   public static final String JAXRS_BODY_PROVIDED = "JAXRS-Body-Provided";
+
 }

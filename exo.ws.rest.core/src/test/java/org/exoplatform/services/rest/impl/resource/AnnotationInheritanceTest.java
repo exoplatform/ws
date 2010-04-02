@@ -18,9 +18,7 @@
  */
 package org.exoplatform.services.rest.impl.resource;
 
-import org.exoplatform.services.rest.ComponentLifecycleScope;
-import org.exoplatform.services.rest.impl.BaseTest;
-import org.exoplatform.services.rest.tools.ResourceLauncher;
+import org.exoplatform.services.rest.AbstractResourceTest;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -34,7 +32,7 @@ import javax.ws.rs.core.MediaType;
  * @author <a href="mailto:dmitry.kataev@exoplatform.com.ua">Dmytro Katayev</a>
  * @version $Id: AnnotationInheritanceTest.java
  */
-public class AnnotationInheritanceTest extends BaseTest
+public class AnnotationInheritanceTest extends AbstractResourceTest
 {
 
    public static interface ResourceInterface
@@ -85,19 +83,11 @@ public class AnnotationInheritanceTest extends BaseTest
       }
    }
 
-   private ResourceLauncher launcher;
-
-   public void setUp() throws Exception
-   {
-      super.setUp();
-      this.launcher = new ResourceLauncher(requestHandler);
-   }
-
    public void testFailedInheritance()
    {
       try
       {
-         new AbstractResourceDescriptorImpl(Resource3.class, ComponentLifecycleScope.PER_REQUEST);
+         new AbstractResourceDescriptorImpl(Resource3.class);
          fail("Should be failed here, equivocality annotation on method m0");
       }
       catch (RuntimeException e)
@@ -112,18 +102,16 @@ public class AnnotationInheritanceTest extends BaseTest
 
       registry(resource1);
 
-      assertEquals(200, launcher.service("GET", "/a", "", null, null, null).getStatus());
-      assertEquals("m0", launcher.service("GET", "/a", "", null, null, null).getEntity());
-      assertEquals(MediaType.TEXT_XML_TYPE, launcher.service("GET", "/a", "", null, null, null)
-         .getContentType());
+      assertEquals(200, service("GET", "/a", "", null, null).getStatus());
+      assertEquals("m0", service("GET", "/a", "", null, null).getEntity());
+      assertEquals(MediaType.TEXT_XML_TYPE, service("GET", "/a", "", null, null).getContentType());
 
       unregistry(resource1);
 
       registry(resource2);
-      assertEquals(200, launcher.service("GET", "/a", "", null, null, null).getStatus());
-      assertEquals("m0", launcher.service("GET", "/a", "", null, null, null).getEntity());
-      assertEquals(MediaType.APPLICATION_ATOM_XML_TYPE, launcher.service("GET", "/a", "", null, null, null)
-         .getContentType());
+      assertEquals(200, service("GET", "/a", "", null, null).getStatus());
+      assertEquals("m0", service("GET", "/a", "", null, null).getEntity());
+      assertEquals(MediaType.APPLICATION_ATOM_XML_TYPE, service("GET", "/a", "", null, null).getContentType());
       unregistry(resource2);
 
    }

@@ -19,6 +19,9 @@
 package org.exoplatform.ws.frameworks.servlet;
 
 import org.exoplatform.container.StandaloneContainer;
+import org.exoplatform.container.configuration.ConfigurationManagerImpl;
+import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.services.log.Log;
 import org.exoplatform.services.naming.InitialContextInitializer;
 
 import java.net.MalformedURLException;
@@ -46,10 +49,11 @@ import javax.servlet.ServletContextListener;
 public class StandaloneContainerInitializedListener implements ServletContextListener
 {
 
-   /**
-    * org.exoplatform.container.standalone.config
-    */
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.frameworks.servlet.StandaloneContainerInitializedListener");
+
    private static final String CONF_URL_PARAMETER = "org.exoplatform.container.standalone.config";
+
+   private static final String PREFIX_WAR = "war:";
 
    /**
     * Container.
@@ -62,12 +66,27 @@ public class StandaloneContainerInitializedListener implements ServletContextLis
    public void contextInitialized(ServletContextEvent event)
    {
       String configurationURL = event.getServletContext().getInitParameter(CONF_URL_PARAMETER);
+
+      try
+      {
+         if (configurationURL != null && configurationURL.startsWith(PREFIX_WAR))
+         {
+            configurationURL =
+               event.getServletContext().getResource(configurationURL.substring(PREFIX_WAR.length())).toExternalForm();
+         }
+      }
+      catch (Exception e)
+      {
+         LOG.error("Error of configurationURL read", e);
+      }
+
       try
       {
          StandaloneContainer.addConfigurationURL(configurationURL);
       }
-      catch (MalformedURLException e1)
+      catch (MalformedURLException e)
       {
+         LOG.error("Error of addConfigurationURL", e);
       }
 
       try
@@ -79,13 +98,15 @@ public class StandaloneContainerInitializedListener implements ServletContextLis
             (InitialContextInitializer)container.getComponentInstanceOfType(InitialContextInitializer.class);
 
          if (ic != null)
+         {
             ic.recall();
+         }
 
          event.getServletContext().setAttribute("org.exoplatform.frameworks.web.eXoContainer", container);
       }
       catch (Exception e)
       {
-         e.printStackTrace();
+         LOG.error("Error of StandaloneContainer initialization", e);
       }
 
    }

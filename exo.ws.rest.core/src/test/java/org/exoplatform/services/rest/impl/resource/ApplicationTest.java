@@ -18,17 +18,15 @@
  */
 package org.exoplatform.services.rest.impl.resource;
 
+import org.exoplatform.services.rest.AbstractResourceTest;
 import org.exoplatform.services.rest.Filter;
 import org.exoplatform.services.rest.GenericContainerRequest;
 import org.exoplatform.services.rest.GenericContainerResponse;
 import org.exoplatform.services.rest.RequestFilter;
 import org.exoplatform.services.rest.ResponseFilter;
-import org.exoplatform.services.rest.impl.BaseTest;
-import org.exoplatform.services.rest.impl.ApplicationPublisher;
 import org.exoplatform.services.rest.impl.ContainerResponse;
 import org.exoplatform.services.rest.method.MethodInvokerFilter;
 import org.exoplatform.services.rest.resource.GenericMethodResource;
-import org.exoplatform.services.rest.tools.ResourceLauncher;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -41,9 +39,9 @@ import javax.ws.rs.ext.Provider;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
-public class ApplicationTest extends BaseTest
+public class ApplicationTest extends AbstractResourceTest
 {
 
    public static class Application1 extends javax.ws.rs.core.Application
@@ -189,9 +187,8 @@ public class ApplicationTest extends BaseTest
 
    public void testRegistry()
    {
-      ApplicationPublisher deployer = new ApplicationPublisher(resources, providers);
-      deployer.publish(new Application1());
-      assertEquals(4, resources.getSize());
+      binder.addApplication(new Application1());
+      assertEquals(4, binder.getSize());
       assertEquals(1, providers.getRequestFilters(null).size());
       assertEquals(1, providers.getResponseFilters(null).size());
       assertEquals(1, providers.getMethodInvokerFilters(null).size());
@@ -203,44 +200,35 @@ public class ApplicationTest extends BaseTest
    private static boolean responseFilter = false;
    private static boolean invFilter = false;
    
-   private ResourceLauncher launcher;
-
-   public void setUp() throws Exception
-   {
-      super.setUp();
-      this.launcher = new ResourceLauncher(requestHandler);
-   }
-
    public void testAsResources() throws Exception
    {
-      ApplicationPublisher deployer = new ApplicationPublisher(resources, providers);
-      deployer.publish(new Application1());
+      binder.addApplication(new Application1());
       // per-request
-      ContainerResponse resp = launcher.service("GET", "/a", "", null, null, null);
+      ContainerResponse resp = service("GET", "/a", "", null, null);
       assertEquals(200, resp.getStatus());
       String hash10 = (String)resp.getEntity();
-      resp = launcher.service("GET", "/a", "", null, null, null);
+      resp = service("GET", "/a", "", null, null);
       String hash11 = (String)resp.getEntity();
       // new instance of resource for each request
       assertFalse(hash10.equals(hash11));
 
       // singleton
-      resp = launcher.service("GET", "/c", "", null, null, null);
+      resp = service("GET", "/c", "", null, null);
       assertEquals(200, resp.getStatus());
       String hash20 = (String)resp.getEntity();
-      resp = launcher.service("GET", "/c", "", null, null, null);
+      resp = service("GET", "/c", "", null, null);
       String hash21 = (String)resp.getEntity();
       // singleton resource
       assertTrue(hash20.equals(hash21));
 
       // check per-request ExceptionMapper as example of provider
-      resp = launcher.service("GET", "/b", "", null, null, null);
+      resp = service("GET", "/b", "", null, null);
       // should be 200 status instead 500 if ExceptionMapper works correct
       assertEquals(200, resp.getStatus());
       assertEquals("test Runtime Exception", resp.getEntity());
 
       // check singleton ExceptionMapper as example of provider
-      resp = launcher.service("GET", "/d", "", null, null, null);
+      resp = service("GET", "/d", "", null, null);
       // should be 200 status instead 500 if ExceptionMapper works correct
       assertEquals(200, resp.getStatus());
       assertEquals("test Illegal State Exception", resp.getEntity());

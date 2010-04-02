@@ -36,7 +36,7 @@ import javax.ws.rs.core.MultivaluedMap;
  * {@link RequestHandler}.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public class SerialRequest implements Serializable
 {

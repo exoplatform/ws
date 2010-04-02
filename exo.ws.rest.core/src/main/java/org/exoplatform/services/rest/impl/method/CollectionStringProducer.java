@@ -22,7 +22,7 @@ package org.exoplatform.services.rest.impl.method;
  * Produce collections each element of it is String.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public final class CollectionStringProducer extends BaseCollectionProducer
 {

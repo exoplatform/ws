@@ -18,15 +18,10 @@
  */
 package org.exoplatform.services.rest.impl;
 
-import java.io.ByteArrayInputStream;
-import java.util.HashMap;
-import java.util.List;
-
+import org.exoplatform.services.rest.AbstractResourceTest;
 import org.exoplatform.services.rest.Filter;
 import org.exoplatform.services.rest.GenericContainerRequest;
 import org.exoplatform.services.rest.RequestFilter;
-import org.exoplatform.services.rest.tools.ResourceLauncher;
-import org.exoplatform.services.test.mock.MockHttpServletRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
@@ -40,18 +35,10 @@ import javax.ws.rs.ext.Providers;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
-public class RequestFilterTest extends BaseTest
+public class RequestFilterTest extends AbstractResourceTest
 {
-
-   private ResourceLauncher launcher;
-
-   public void setUp() throws Exception
-   {
-      super.setUp();
-      this.launcher = new ResourceLauncher(requestHandler);
-   }
 
    @Filter
    public static class RequestFilter1 implements RequestFilter
@@ -67,15 +54,18 @@ public class RequestFilterTest extends BaseTest
 
       private HttpServletRequest httpRequest;
 
-      public RequestFilter1(@Context Providers providers, @Context HttpServletRequest httpRequest)
+      private ResourceBinder binder; // exo container component
+
+      public RequestFilter1(@Context Providers providers, @Context HttpServletRequest httpRequest, ResourceBinder binder)
       {
          this.providers = providers;
          this.httpRequest = httpRequest;
+         this.binder = binder;
       }
 
       public void doFilter(GenericContainerRequest request)
       {
-         if (uriInfo != null && httpHeaders != null && providers != null && httpRequest != null)
+         if (uriInfo != null && httpHeaders != null && providers != null && httpRequest != null && binder != null)
             request.setMethod("POST");
       }
 
@@ -120,7 +110,7 @@ public class RequestFilterTest extends BaseTest
    public void testWithoutFilter1() throws Exception
    {
       registry(Resource1.class);
-      ContainerResponse resp = launcher.service("GET", "/a", "", null, null, null);
+      ContainerResponse resp = service("GET", "/a", "", null, null);
       assertEquals(405, resp.getStatus());
       assertEquals(1, resp.getHttpHeaders().get("allow").size());
       assertTrue(resp.getHttpHeaders().get("allow").get(0).toString().contains("POST"));
@@ -133,12 +123,9 @@ public class RequestFilterTest extends BaseTest
 
       // add filter that can change method
       providers.addRequestFilter(RequestFilter1.class);
-      EnvironmentContext env = new EnvironmentContext();
-      env.put(HttpServletRequest.class, new MockHttpServletRequest("", new ByteArrayInputStream(new byte[0]), 0,
-         "GET", new HashMap<String, List<String>>()));
 
       // should get status 204
-      ContainerResponse resp = launcher.service("GET", "/a", "", null, null, env);
+      ContainerResponse resp = service("GET", "/a", "", null, null);
       assertEquals(204, resp.getStatus());
 
       unregistry(Resource1.class);
@@ -148,7 +135,7 @@ public class RequestFilterTest extends BaseTest
    public void testFilter2() throws Exception
    {
       registry(Resource1.class);
-      ContainerResponse resp = launcher.service("GET", "/a/b/c/d/e", "", null, null, null);
+      ContainerResponse resp = service("GET", "/a/b/c/d/e", "", null, null);
       assertEquals(405, resp.getStatus());
       assertEquals(1, resp.getHttpHeaders().get("allow").size());
       assertTrue(resp.getHttpHeaders().get("allow").get(0).toString().contains("DELETE"));
@@ -157,7 +144,7 @@ public class RequestFilterTest extends BaseTest
       providers.addRequestFilter(new RequestFilter2());
 
       // not should get status 204
-      resp = launcher.service("GET", "/a/b/c/d/e", "", null, null, null);
+      resp = service("GET", "/a/b/c/d/e", "", null, null);
       assertEquals(204, resp.getStatus());
 
       unregistry(Resource1.class);

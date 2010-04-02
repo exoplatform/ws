@@ -22,7 +22,7 @@ import org.exoplatform.services.rest.ApplicationContext;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  * @param <T> on of JAX-RS annotation that used for method parameters
  */
 public abstract class ParameterResolver<T>

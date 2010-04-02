@@ -25,7 +25,7 @@ import org.exoplatform.services.rest.resource.ResourceDescriptor;
  * per-request mode.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public interface FieldInjector extends Parameter, ResourceDescriptor
 {

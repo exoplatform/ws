@@ -22,7 +22,7 @@ import org.exoplatform.services.rest.header.QualityValue;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public class AcceptToken extends Token implements QualityValue
 {

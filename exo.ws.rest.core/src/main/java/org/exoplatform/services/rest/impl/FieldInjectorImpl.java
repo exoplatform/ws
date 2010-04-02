@@ -43,7 +43,7 @@ import javax.ws.rs.ext.Provider;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public class FieldInjectorImpl implements FieldInjector
 {
@@ -51,7 +51,7 @@ public class FieldInjectorImpl implements FieldInjector
    /**
     * Logger.
     */
-   private static final Log LOG = ExoLogger.getLogger(FieldInjectorImpl.class.getName());
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.rest.core.FieldInjectorImpl");
 
    /**
     * All annotations including JAX-RS annotation.
@@ -73,6 +73,7 @@ public class FieldInjectorImpl implements FieldInjector
     * See {@link javax.ws.rs.Encoded}.
     */
    private final boolean encoded;
+
 
    /** See {@link java.lang.reflect.Field} . */
    private final java.lang.reflect.Field jfield;
@@ -223,27 +224,6 @@ public class FieldInjectorImpl implements FieldInjector
 
             throw new WebApplicationException(e, Response.status(Response.Status.BAD_REQUEST).build());
          }
-      }
-      else
-      {
-         if (context.getDependencySupplier() != null)
-         {
-            Object tmp = context.getDependencySupplier().getComponent(this);
-            if (tmp != null)
-            {
-               try
-               {
-                  if (!Modifier.isPublic(jfield.getModifiers()))
-                     jfield.setAccessible(true);
-                  jfield.set(resource, tmp);
-               }
-               catch (Throwable e)
-               {
-                  throw new WebApplicationException(e, Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
-               }
-            }
-         }
-
       }
 
    }

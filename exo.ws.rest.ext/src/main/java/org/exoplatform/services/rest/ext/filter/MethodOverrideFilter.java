@@ -19,7 +19,6 @@
 package org.exoplatform.services.rest.ext.filter;
 
 import org.exoplatform.services.rest.ExtHttpHeaders;
-import org.exoplatform.services.rest.Filter;
 import org.exoplatform.services.rest.GenericContainerRequest;
 import org.exoplatform.services.rest.RequestFilter;
 
@@ -28,9 +27,8 @@ import org.exoplatform.services.rest.RequestFilter;
  * header.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
-@Filter
 public class MethodOverrideFilter implements RequestFilter
 {
 

@@ -18,8 +18,7 @@
  */
 package org.exoplatform.services.rest.impl.method;
 
-import org.exoplatform.services.rest.impl.BaseTest;
-import org.exoplatform.services.rest.tools.ResourceLauncher;
+import org.exoplatform.services.rest.AbstractResourceTest;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
@@ -32,7 +31,7 @@ import javax.ws.rs.Path;
  * @author <a href="mailto:dmitry.kataev@exoplatform.com.ua">Dmytro Katayev</a>
  * @version $Id: HeadMethodTest.java
  */
-public class HeadMethodTest extends BaseTest
+public class HeadMethodTest extends AbstractResourceTest
 {
 
    @Path("/a")
@@ -65,21 +64,13 @@ public class HeadMethodTest extends BaseTest
 
    }
 
-   private ResourceLauncher launcher;
-
-   public void setUp() throws Exception
-   {
-      super.setUp();
-      this.launcher = new ResourceLauncher(requestHandler);
-   }
-
    public void testHeadMethod() throws Exception
    {
       Resource1 resource1 = new Resource1();
       registry(resource1);
 
-      assertEquals("get", launcher.service("GET", "/a", "", null, null, null).getEntity());
-      assertEquals(200, launcher.service("HEAD", "/a", "", null, null, null).getStatus());
+      assertEquals("get", service("GET", "/a", "", null, null).getEntity());
+      assertEquals(200, service("HEAD", "/a", "", null, null).getStatus());
 
       unregistry(resource1);
 
@@ -87,9 +78,9 @@ public class HeadMethodTest extends BaseTest
 
       registry(resource2);
 
-      assertEquals("get", launcher.service("GET", "/b", "", null, null, null).getEntity());
-      assertEquals(200, launcher.service("HEAD", "/b", "", null, null, null).getStatus());
-      assertNull(launcher.service("HEAD", "/b", "", null, null, null).getEntity());
+      assertEquals("get", service("GET", "/b", "", null, null).getEntity());
+      assertEquals(200, service("HEAD", "/b", "", null, null).getStatus());
+      assertNull(service("HEAD", "/b", "", null, null).getEntity());
 
       unregistry(resource2);
    }

@@ -25,7 +25,7 @@ import java.lang.reflect.Constructor;
  * single String argument.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public final class CollectionStringConstructorProducer extends BaseCollectionProducer
 {

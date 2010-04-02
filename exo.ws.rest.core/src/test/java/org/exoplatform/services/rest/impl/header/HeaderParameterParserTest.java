@@ -18,7 +18,7 @@
  */
 package org.exoplatform.services.rest.impl.header;
 
-import org.exoplatform.services.rest.impl.BaseTest;
+import org.exoplatform.services.rest.BaseTest;
 
 import java.text.ParseException;
 import java.util.Map;

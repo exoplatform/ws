@@ -34,7 +34,7 @@ import java.io.Serializable;
  * SerialInputData is useful for transfer data represented by stream via RMI.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public class SerialInputData implements Serializable
 {

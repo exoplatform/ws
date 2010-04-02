@@ -25,9 +25,9 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.exoplatform.services.rest.ApplicationContext;
 import org.exoplatform.services.rest.RequestHandler;
 import org.exoplatform.services.rest.impl.ApplicationContextImpl;
-import org.exoplatform.services.rest.impl.FileCollector;
 import org.exoplatform.services.rest.provider.EntityProvider;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -47,7 +47,7 @@ import javax.ws.rs.ext.Provider;
  * Processing multipart data based on apache fileupload.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 @Provider
 @Consumes({"multipart/*"})
@@ -100,8 +100,9 @@ public class MultipartFormDataEntityProvider implements EntityProvider<Iterator<
             context.getProperties().get(RequestHandler.WS_RS_BUFFER_SIZE) == null
                ? RequestHandler.WS_RS_BUFFER_SIZE_VALUE : Integer.parseInt((String)context.getProperties().get(
                   RequestHandler.WS_RS_BUFFER_SIZE));
-         
-         DefaultFileItemFactory factory = new DefaultFileItemFactory(bufferSize, FileCollector.getInstance().getStore());
+         File repo = new File((String)context.getProperties().get(RequestHandler.WS_RS_TMP_DIR));
+
+         DefaultFileItemFactory factory = new DefaultFileItemFactory(bufferSize, repo);
          FileUpload upload = new FileUpload(factory);
          return upload.parseRequest(httpRequest).iterator();
       }

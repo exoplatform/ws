@@ -25,7 +25,7 @@ import java.lang.reflect.Type;
  * Describes the method's parameter.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public class MethodParameterImpl implements org.exoplatform.services.rest.method.MethodParameter
 {

@@ -30,7 +30,7 @@ package org.exoplatform.services.rest;
  * request."
  * 
  * @author Gennady Azarenkov
- * @version $Id$
+ * @version $Id: $
  */
 public interface Connector
 {

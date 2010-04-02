@@ -18,7 +18,6 @@
  */
 package org.exoplatform.services.rest.wadl;
 
-import org.exoplatform.services.rest.ComponentLifecycleScope;
 import org.exoplatform.services.rest.impl.resource.AbstractResourceDescriptorImpl;
 import org.exoplatform.services.rest.method.MethodParameter;
 import org.exoplatform.services.rest.resource.AbstractResourceDescriptor;
@@ -47,7 +46,7 @@ import javax.xml.namespace.QName;
  * {@link AbstractResourceDescriptor}.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public final class WadlProcessor
 {
@@ -217,7 +216,7 @@ public final class WadlProcessor
       for (SubResourceLocatorDescriptor srld : resourceDescriptor.getSubResourceLocators().values())
       {
          AbstractResourceDescriptor subResourceDescriptor =
-            new AbstractResourceDescriptorImpl(srld.getMethod().getReturnType(), ComponentLifecycleScope.SINGLETON);
+            new AbstractResourceDescriptorImpl(srld.getMethod().getReturnType());
          org.exoplatform.services.rest.wadl.research.Resource wadlSubResource = processResource(subResourceDescriptor);
          wadlSubResource.setPath(srld.getPathValue().getPath());
          wadlResource.getMethodOrResource().add(wadlSubResource);

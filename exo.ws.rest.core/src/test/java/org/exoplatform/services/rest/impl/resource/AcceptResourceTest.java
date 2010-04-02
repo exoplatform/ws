@@ -18,9 +18,8 @@
  */
 package org.exoplatform.services.rest.impl.resource;
 
-import org.exoplatform.services.rest.impl.BaseTest;
+import org.exoplatform.services.rest.AbstractResourceTest;
 import org.exoplatform.services.rest.impl.MultivaluedMapImpl;
-import org.exoplatform.services.rest.tools.ResourceLauncher;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -31,9 +30,9 @@ import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
-public class AcceptResourceTest extends BaseTest
+public class AcceptResourceTest extends AbstractResourceTest
 {
 
    @Path("/a")
@@ -147,14 +146,6 @@ public class AcceptResourceTest extends BaseTest
 
    }
 
-   private ResourceLauncher launcher;
-
-   public void setUp() throws Exception
-   {
-      super.setUp();
-      this.launcher = new ResourceLauncher(requestHandler);
-   }
-
    public void testContentType() throws Exception
    {
       Resource1 r1 = new Resource1();
@@ -213,14 +204,14 @@ public class AcceptResourceTest extends BaseTest
    {
       MultivaluedMap<String, String> h = new MultivaluedMapImpl();
       h.putSingle("content-type", contentType);
-      return (String)launcher.service("POST", "/a", "", h, null, null).getEntity();
+      return (String)service("POST", "/a", "", h, null).getEntity();
    }
 
    private String testAcceptedMediaType(String acceptMediaType) throws Exception
    {
       MultivaluedMap<String, String> h = new MultivaluedMapImpl();
       h.putSingle("accept", acceptMediaType);
-      return (String)launcher.service("GET", "/a", "", h, null, null).getEntity();
+      return (String)service("GET", "/a", "", h, null).getEntity();
    }
 
    private String testComplex(String contentType, String acceptMediaType) throws Exception
@@ -228,6 +219,6 @@ public class AcceptResourceTest extends BaseTest
       MultivaluedMap<String, String> h = new MultivaluedMapImpl();
       h.putSingle("content-type", contentType);
       h.putSingle("accept", acceptMediaType);
-      return (String)launcher.service("POST", "/a", "", h, null, null).getEntity();
+      return (String)service("POST", "/a", "", h, null).getEntity();
    }
 }

@@ -38,7 +38,7 @@ import javax.ws.rs.core.MediaType;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public class ProviderDescriptorImpl implements ProviderDescriptor
 {
@@ -74,9 +74,25 @@ public class ProviderDescriptorImpl implements ProviderDescriptor
 
    /**
     * @param providerClass provider class
+    */
+   public ProviderDescriptorImpl(Class<?> providerClass)
+   {
+      this(providerClass, ComponentLifecycleScope.PER_REQUEST);
+   }
+
+   /**
+    * @param provider provider instance
+    */
+   public ProviderDescriptorImpl(Object provider)
+   {
+      this(provider.getClass(), ComponentLifecycleScope.SINGLETON);
+   }
+
+   /**
+    * @param providerClass provider class
     * @param scope provider scope
     */
-   public ProviderDescriptorImpl(Class<?> providerClass, ComponentLifecycleScope scope)
+   private ProviderDescriptorImpl(Class<?> providerClass, ComponentLifecycleScope scope)
    {
       this.providerClass = providerClass;
 

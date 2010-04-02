@@ -18,9 +18,8 @@
  */
 package org.exoplatform.services.rest.impl.provider;
 
-import org.exoplatform.services.rest.impl.BaseTest;
+import org.exoplatform.services.rest.AbstractResourceTest;
 import org.exoplatform.services.rest.impl.ContainerResponse;
-import org.exoplatform.services.rest.tools.ResourceLauncher;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -30,9 +29,9 @@ import javax.ws.rs.ext.ExceptionMapper;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
-public class ExceptionMapperTest extends BaseTest
+public class ExceptionMapperTest extends AbstractResourceTest
 {
 
    public static class ExceptionMapper1 implements ExceptionMapper<IllegalArgumentException>
@@ -82,8 +81,6 @@ public class ExceptionMapperTest extends BaseTest
 
    }
 
-   private ResourceLauncher launcher;
-
    public void setUp() throws Exception
    {
       super.setUp();
@@ -91,7 +88,6 @@ public class ExceptionMapperTest extends BaseTest
       providers.addExceptionMapper(ExceptionMapper2.class);
       providers.addExceptionMapper(ExceptionMapper3.class);
       providers.addExceptionMapper(ExceptionMapper4.class);
-      this.launcher = new ResourceLauncher(requestHandler);
    }
 
    @Path("a")
@@ -140,24 +136,24 @@ public class ExceptionMapperTest extends BaseTest
    {
       registry(Resource1.class);
 
-      ContainerResponse resp = launcher.service("GET", "/a/1", "", null, null, null);
+      ContainerResponse resp = service("GET", "/a/1", "", null, null);
       assertEquals(200, resp.getStatus());
       assertEquals("IllegalArgumentException", resp.getEntity());
 
-      resp = launcher.service("GET", "/a/2", "", null, null, null);
+      resp = service("GET", "/a/2", "", null, null);
       assertEquals(200, resp.getStatus());
       assertEquals("RuntimeException", resp.getEntity());
 
-      resp = launcher.service("GET", "/a/3", "", null, null, null);
+      resp = service("GET", "/a/3", "", null, null);
       assertEquals(200, resp.getStatus());
       assertEquals("WebApplicationException", resp.getEntity());
 
-      resp = launcher.service("GET", "/a/4", "", null, null, null);
+      resp = service("GET", "/a/4", "", null, null);
       // WebApplicationException with entity - must not be overridden 
       assertEquals(500, resp.getStatus());
       assertEquals("this exception must not be hidden by any ExceptionMapper", resp.getEntity());
 
-      resp = launcher.service("GET", "/a/5", "", null, null, null);
+      resp = service("GET", "/a/5", "", null, null);
       assertEquals(200, resp.getStatus());
       assertEquals("MockException", resp.getEntity());
 

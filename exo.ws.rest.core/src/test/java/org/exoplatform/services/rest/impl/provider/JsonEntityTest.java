@@ -18,12 +18,11 @@
  */
 package org.exoplatform.services.rest.impl.provider;
 
+import org.exoplatform.services.rest.AbstractResourceTest;
 import org.exoplatform.services.rest.generated.Book;
-import org.exoplatform.services.rest.impl.BaseTest;
 import org.exoplatform.services.rest.impl.ContainerResponse;
 import org.exoplatform.services.rest.impl.MultivaluedMapImpl;
 import org.exoplatform.services.rest.tools.ByteArrayContainerResponseWriter;
-import org.exoplatform.services.rest.tools.ResourceLauncher;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -34,9 +33,9 @@ import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
-public class JsonEntityTest extends BaseTest
+public class JsonEntityTest extends AbstractResourceTest
 {
 
    @Path("/")
@@ -80,14 +79,11 @@ public class JsonEntityTest extends BaseTest
 
    private byte[] jsonData;
 
-   private ResourceLauncher launcher;
-
    public void setUp() throws Exception
    {
       super.setUp();
       jsonData =
          ("{\"title\":\"Hamlet\"," + "\"author\":\"William Shakespeare\"," + "\"sendByPost\":true}").getBytes("UTF-8");
-      this.launcher = new ResourceLauncher(requestHandler);
    }
 
    public void testJsonEntityParameter() throws Exception
@@ -100,7 +96,7 @@ public class JsonEntityTest extends BaseTest
       // with JSON transformation for Book have restriction can't pass BigDecimal
       // (has not simple constructor and it is not in JSON known types)
       h.putSingle("content-length", "" + jsonData.length);
-      assertEquals(204, launcher.service("POST", "/", "", h, jsonData, null).getStatus());
+      assertEquals(204, service("POST", "/", "", h, jsonData).getStatus());
       unregistry(r1);
    }
 
@@ -113,7 +109,7 @@ public class JsonEntityTest extends BaseTest
       ByteArrayContainerResponseWriter writer = new ByteArrayContainerResponseWriter();
 
       // Resource2#m1()
-      ContainerResponse response = launcher.service("GET", "/", "", h, null, writer, null);
+      ContainerResponse response = service("GET", "/", "", h, null, writer);
       assertEquals(200, response.getStatus());
       assertEquals("application/json", response.getContentType().toString());
       Book book = (Book)response.getEntity();
@@ -122,14 +118,14 @@ public class JsonEntityTest extends BaseTest
       assertTrue(book.isSendByPost());
 
       // Resource2#m2()
-      response = launcher.service("POST", "/", "", h, null, writer, null);
+      response = service("POST", "/", "", h, null, writer);
       assertEquals(200, response.getStatus());
       assertEquals("application/json", response.getContentType().toString());
       book = (Book)response.getEntity();
       assertEquals("Hamlet\n", book.getTitle());
       assertEquals("William Shakespeare\n", book.getAuthor());
       assertFalse(book.isSendByPost());
-      writer = new ByteArrayContainerResponseWriter();
+//      writer = new ByteArrayContainerResponseWriter();
       unregistry(r2);
    }
 

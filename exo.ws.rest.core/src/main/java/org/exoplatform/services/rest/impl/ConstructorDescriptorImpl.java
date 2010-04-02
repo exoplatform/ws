@@ -18,6 +18,8 @@
  */
 package org.exoplatform.services.rest.impl;
 
+import org.exoplatform.container.ExoContainer;
+import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.rest.ApplicationContext;
@@ -48,7 +50,7 @@ import javax.ws.rs.ext.Provider;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public class ConstructorDescriptorImpl implements ConstructorDescriptor
 {
@@ -56,7 +58,7 @@ public class ConstructorDescriptorImpl implements ConstructorDescriptor
    /**
     * Logger.
     */
-   private static final Log LOG = ExoLogger.getLogger(ConstructorDescriptorImpl.class.getName());
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.rest.core.ConstructorDescriptorImpl");
 
    /**
     * ConstructorDescriptor comparator.
@@ -216,6 +218,7 @@ public class ConstructorDescriptorImpl implements ConstructorDescriptor
     */
    public Object createInstance(ApplicationContext context)
    {
+      ExoContainer container = ExoContainerContext.getCurrentContainer();
       Object[] p = new Object[parameters.size()];
       int i = 0;
       for (ConstructorParameter cp : parameters)
@@ -239,22 +242,10 @@ public class ConstructorDescriptorImpl implements ConstructorDescriptor
          }
          else
          {
-            // XXX need to use @Inject annotation here ??? 
-            
             // If parameter not has not annotation then get constructor parameter
-            // from DependencyInjector, this is out of scope JAX-RS specification.
-            
-            if (context.getDependencySupplier() == null)
-            {
-               String msg =
-                  "Can't instantiate resource " + resourceClass
-                     + ". DependencyInjector not found, not able get required parameter " + cp;
-               LOG.error(msg);
-               throw new WebApplicationException(Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(msg)
-                  .type(MediaType.TEXT_PLAIN).build());
-            }
+            // from container, this is out of scope JAX-RS specification.
+            Object tmp = container.getComponentInstanceOfType(cp.getParameterClass());
 
-            Object tmp = context.getDependencySupplier().getComponent(cp);
             if (tmp == null)
             {
                String msg =

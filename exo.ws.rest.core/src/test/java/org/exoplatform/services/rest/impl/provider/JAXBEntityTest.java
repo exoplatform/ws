@@ -18,12 +18,11 @@
  */
 package org.exoplatform.services.rest.impl.provider;
 
+import org.exoplatform.services.rest.AbstractResourceTest;
 import org.exoplatform.services.rest.generated.Book;
-import org.exoplatform.services.rest.impl.BaseTest;
 import org.exoplatform.services.rest.impl.ContainerResponse;
 import org.exoplatform.services.rest.impl.MultivaluedMapImpl;
 import org.exoplatform.services.rest.tools.ByteArrayContainerResponseWriter;
-import org.exoplatform.services.rest.tools.ResourceLauncher;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -35,18 +34,10 @@ import javax.xml.bind.JAXBElement;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
-public class JAXBEntityTest extends BaseTest
+public class JAXBEntityTest extends AbstractResourceTest
 {
-
-   private ResourceLauncher launcher;
-
-   public void setUp() throws Exception
-   {
-      super.setUp();
-      this.launcher = new ResourceLauncher(requestHandler);
-   }
 
    @Path("/")
    public static class Resource1
@@ -120,10 +111,10 @@ public class JAXBEntityTest extends BaseTest
       h.putSingle("content-type", "application/xml");
       byte[] data = XML_DATA.getBytes("UTF-8");
       h.putSingle("content-length", "" + data.length);
-      assertEquals(204, launcher.service("POST", "/a", "", h, data, null).getStatus());
+      assertEquals(204, service("POST", "/a", "", h, data).getStatus());
 
       // Object transfered via XML (JAXB)
-      assertEquals(204, launcher.service("POST", "/b", "", h, data, null).getStatus());
+      assertEquals(204, service("POST", "/b", "", h, data).getStatus());
       unregistry(r1);
    }
 
@@ -136,7 +127,7 @@ public class JAXBEntityTest extends BaseTest
       // Resource2#m1()
       h.putSingle("accept", "application/xml");
       ByteArrayContainerResponseWriter writer = new ByteArrayContainerResponseWriter();
-      ContainerResponse response = launcher.service("GET", "/", "", h, null, writer, null);
+      ContainerResponse response = service("GET", "/", "", h, null, writer);
       assertEquals(200, response.getStatus());
       assertEquals("application/xml", response.getContentType().toString());
       Book book = (Book)response.getEntity();
@@ -146,7 +137,7 @@ public class JAXBEntityTest extends BaseTest
 
       // Resource2#m2()
       writer = new ByteArrayContainerResponseWriter();
-      response = launcher.service("POST", "/", "", h, null, writer, null);
+      response = service("POST", "/", "", h, null, writer);
       assertEquals(200, response.getStatus());
       assertEquals("application/xml", response.getContentType().toString());
       book = (Book)response.getEntity();

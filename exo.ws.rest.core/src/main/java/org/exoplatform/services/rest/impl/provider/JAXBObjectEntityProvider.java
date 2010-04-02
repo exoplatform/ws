@@ -45,7 +45,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 @Provider
 @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
@@ -56,7 +56,7 @@ public class JAXBObjectEntityProvider implements EntityProvider<Object>
    /**
     * Logger.
     */
-   private static final Log LOG = ExoLogger.getLogger(JAXBObjectEntityProvider.class.getName());
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.rest.core.JAXBObjectEntityProvider");
 
    /**
     * @see Providers
@@ -147,7 +147,7 @@ public class JAXBObjectEntityProvider implements EntityProvider<Object>
          providers.getContextResolver(JAXBContextResolver.class, mediaType);
       if (resolver == null)
          throw new RuntimeException("Not found any JAXBContextResolver for media type " + mediaType);
-      JAXBContextResolver jaxbres = resolver.getContext(null);
+      JAXBContextResolver jaxbres = resolver.getContext(type);
       return jaxbres.getJAXBContext(type);
    }
 

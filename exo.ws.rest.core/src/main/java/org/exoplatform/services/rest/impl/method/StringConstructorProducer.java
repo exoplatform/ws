@@ -24,7 +24,7 @@ import java.lang.reflect.Constructor;
  * Create object which has constructor with single String parameter.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public final class StringConstructorProducer extends BaseTypeProducer
 {

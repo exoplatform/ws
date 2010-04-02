@@ -35,10 +35,27 @@ import javax.ws.rs.ext.Providers;
  * information.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public interface ApplicationContext extends UriInfo, InitialProperties
 {
+
+   /**
+    * Should be used to pass template values in context by using returned list in
+    * matching to @see
+    * {@link org.exoplatform.services.rest.uri.UriPattern#match(String, List)}
+    * . List will be cleared during matching.
+    * 
+    * @return the list for template values
+    */
+   List<String> getParameterValues();
+
+   /**
+    * Pass in context list of path template parameters @see {@link UriPattern}.
+    * 
+    * @param parameterNames list of templates parameters
+    */
+   void setParameterNames(List<String> parameterNames);
 
    /**
     * Add ancestor resource, according to JSR-311:
@@ -72,49 +89,20 @@ public interface ApplicationContext extends UriInfo, InitialProperties
    Map<String, Object> getAttributes();
 
    /**
-    * @return See {@link GenericContainerRequest}
+    * @return See {@link Request}
     */
-   GenericContainerRequest getContainerRequest();
+   Request getRequest();
 
-   /**
-    * @return See {@link GenericContainerResponse}
-    */
-   GenericContainerResponse getContainerResponse();
-
-   
-   DependencySupplier getDependencySupplier();
-   
    /**
     * @return See {@link HttpHeaders}
     */
    HttpHeaders getHttpHeaders();
-
+   
+   
    /**
     * @return {@link InitialProperties}
     */
    InitialProperties getInitialProperties();
-   
-   
-   /**
-    * Should be used to pass template values in context by using returned list in
-    * matching to @see
-    * {@link org.exoplatform.services.rest.uri.UriPattern#match(String, List)}
-    * . List will be cleared during matching.
-    * 
-    * @return the list for template values
-    */
-   List<String> getParameterValues();
-
-   /**
-    * @return {@link ProviderBinder}
-    * @see Providers
-    */
-   ProviderBinder getProviders();
-
-   /**
-    * @return See {@link Request}
-    */
-   Request getRequest();
 
    /**
     * @return See {@link SecurityContext}
@@ -122,17 +110,24 @@ public interface ApplicationContext extends UriInfo, InitialProperties
    SecurityContext getSecurityContext();
 
    /**
+    * @return See {@link GenericContainerRequest}
+    */
+   GenericContainerRequest getContainerRequest();
+
+   /**
     * @return See {@link UriInfo}
     */
    UriInfo getUriInfo();
 
-   void setDependencyInjector(DependencySupplier depInjector);
-   
    /**
-    * Pass in context list of path template parameters @see {@link UriPattern}.
-    * 
-    * @param parameterNames list of templates parameters
+    * @return See {@link GenericContainerResponse}
     */
-   void setParameterNames(List<String> parameterNames);
+   GenericContainerResponse getContainerResponse();
+
+   /**
+    * @return {@link ProviderBinder}
+    * @see Providers
+    */
+   ProviderBinder getProviders();
 
 }

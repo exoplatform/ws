@@ -69,7 +69,7 @@ import javax.ws.rs.core.MediaType;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public class AbstractResourceDescriptorImpl implements AbstractResourceDescriptor
 {
@@ -77,7 +77,7 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
    /**
     * Logger.
     */
-   private static final Log LOG = ExoLogger.getLogger(AbstractResourceDescriptorImpl.class.getName());
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.rest.core.AbstractResourceDescriptorImpl");
 
    /**
     * @see PathValue
@@ -133,9 +133,20 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
     * 
     * @param resourceClass resource class
     */
-   public AbstractResourceDescriptorImpl(Class<?> resourceClass, ComponentLifecycleScope scope)
+   public AbstractResourceDescriptorImpl(Class<?> resourceClass)
    {
-      this(resourceClass.getAnnotation(Path.class), resourceClass, scope);
+      this(resourceClass.getAnnotation(Path.class), resourceClass, ComponentLifecycleScope.PER_REQUEST);
+   }
+
+   /**
+    * Constructs new instance of AbstractResourceDescriptor without path
+    * (sub-resource).
+    * 
+    * @param resource resource instance
+    */
+   public AbstractResourceDescriptorImpl(Object resource)
+   {
+      this(resource.getClass().getAnnotation(Path.class), resource.getClass(), ComponentLifecycleScope.SINGLETON);
    }
 
    /**

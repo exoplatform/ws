@@ -18,19 +18,13 @@
  */
 package org.exoplatform.services.rest.impl.method;
 
-import java.io.ByteArrayInputStream;
-import java.util.HashMap;
-import java.util.List;
-
+import org.exoplatform.services.rest.AbstractResourceTest;
 import org.exoplatform.services.rest.Filter;
-import org.exoplatform.services.rest.impl.BaseTest;
-import org.exoplatform.services.rest.impl.EnvironmentContext;
+import org.exoplatform.services.rest.impl.ResourceBinder;
 import org.exoplatform.services.rest.method.MethodInvokerFilter;
 import org.exoplatform.services.rest.resource.GenericMethodResource;
 import org.exoplatform.services.rest.resource.ResourceMethodDescriptor;
 import org.exoplatform.services.rest.resource.SubResourceMethodDescriptor;
-import org.exoplatform.services.rest.tools.ResourceLauncher;
-import org.exoplatform.services.test.mock.MockHttpServletRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -46,7 +40,7 @@ import javax.ws.rs.ext.Providers;
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
  * @version $Id: $
  */
-public class MethodInvokerFilterTest extends BaseTest
+public class MethodInvokerFilterTest extends AbstractResourceTest
 {
 
    @Filter
@@ -63,15 +57,18 @@ public class MethodInvokerFilterTest extends BaseTest
       @Context
       private HttpServletRequest httpRequest;
 
-      public MethodInvokerFilter1(@Context UriInfo uriInfo, @Context HttpHeaders httpHeaders)
+      private ResourceBinder binder; // exo container component
+
+      public MethodInvokerFilter1(@Context UriInfo uriInfo, @Context HttpHeaders httpHeaders, ResourceBinder binder)
       {
          this.uriInfo = uriInfo;
          this.httpHeaders = httpHeaders;
+         this.binder = binder;
       }
 
       public void accept(GenericMethodResource genericMethodResource)
       {
-         if (uriInfo != null && httpHeaders != null && providers != null && httpRequest != null)
+         if (uriInfo != null && httpHeaders != null && providers != null && httpRequest != null && binder != null)
          {
             if (genericMethodResource instanceof SubResourceMethodDescriptor)
                // not invoke sub-resource method
@@ -131,26 +128,15 @@ public class MethodInvokerFilterTest extends BaseTest
       }
    }
 
-   private ResourceLauncher launcher;
-
-   public void setUp() throws Exception
-   {
-      super.setUp();
-      this.launcher = new ResourceLauncher(requestHandler);
-   }
-
    public void testInvokerFilter() throws Exception
    {
       Resource1 r = new Resource1();
       registry(r);
-      assertEquals(204, launcher.service("GET", "/a/b", "", null, null, null).getStatus());
-      assertEquals(204, launcher.service("GET", "/a", "", null, null, null).getStatus());
+      assertEquals(204, service("GET", "/a/b", "", null, null).getStatus());
+      assertEquals(204, service("GET", "/a", "", null, null).getStatus());
       providers.addMethodInvokerFilter(MethodInvokerFilter1.class);
-      EnvironmentContext env = new EnvironmentContext();
-      env.put(HttpServletRequest.class, new MockHttpServletRequest("", new ByteArrayInputStream(new byte[0]), 0,
-         "GET", new HashMap<String, List<String>>()));
-      assertEquals(400, launcher.service("GET", "/a/b", "", null, null, env).getStatus());
-      assertEquals(204, launcher.service("GET", "/a", "", null, null, env).getStatus());
+      assertEquals(400, service("GET", "/a/b", "", null, null).getStatus());
+      assertEquals(204, service("GET", "/a", "", null, null).getStatus());
       unregistry(r);
    }
 
@@ -158,11 +144,11 @@ public class MethodInvokerFilterTest extends BaseTest
    {
       Resource2 r = new Resource2();
       registry(r);
-      assertEquals(204, launcher.service("GET", "/b/c", "", null, null, null).getStatus());
-      assertEquals(204, launcher.service("GET", "/b/d", "", null, null, null).getStatus());
+      assertEquals(204, service("GET", "/b/c", "", null, null).getStatus());
+      assertEquals(204, service("GET", "/b/d", "", null, null).getStatus());
       providers.addMethodInvokerFilter(new MethodInvokerFilter2());
-      assertEquals(400, launcher.service("GET", "/b/c", "", null, null, null).getStatus());
-      assertEquals(204, launcher.service("GET", "/b/d", "", null, null, null).getStatus());
+      assertEquals(400, service("GET", "/b/c", "", null, null).getStatus());
+      assertEquals(204, service("GET", "/b/d", "", null, null).getStatus());
       unregistry(r);
    }
 

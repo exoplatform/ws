@@ -18,9 +18,8 @@
  */
 package org.exoplatform.services.rest.impl.method;
 
-import org.exoplatform.services.rest.impl.BaseTest;
+import org.exoplatform.services.rest.AbstractResourceTest;
 import org.exoplatform.services.rest.impl.MultivaluedMapImpl;
-import org.exoplatform.services.rest.tools.ResourceLauncher;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -39,16 +38,8 @@ import javax.ws.rs.core.MultivaluedMap;
  * @author <a href="mailto:dmitry.kataev@exoplatform.com.ua">Dmytro Katayev</a>
  * @version $Id: MediaTypeTest.java 
  */
-public class MediaTypeTest extends BaseTest
+public class MediaTypeTest extends AbstractResourceTest
 {
-
-   private ResourceLauncher launcher;
-
-   public void setUp() throws Exception
-   {
-      super.setUp();
-      this.launcher = new ResourceLauncher(requestHandler);
-   }
 
    @Path("/a")
    public static class Resource1
@@ -99,25 +90,21 @@ public class MediaTypeTest extends BaseTest
       registry(resource1);
       registry(resource2);
 
-      assertEquals(200, launcher.service("GET", "/a", "", null, null, null).getStatus());
-      assertEquals("m0", launcher.service("GET", "/a", "", null, null, null).getEntity());
-      assertEquals(MediaType.WILDCARD_TYPE, launcher.service("GET", "/a", "", null, null, null)
-         .getContentType());
+      assertEquals(200, service("GET", "/a", "", null, null).getStatus());
+      assertEquals("m0", service("GET", "/a", "", null, null).getEntity());
+      assertEquals(MediaType.WILDCARD_TYPE, service("GET", "/a", "", null, null).getContentType());
 
-      assertEquals(200, launcher.service("GET", "/b/c", "", null, null, null).getStatus());
-      assertEquals(MediaType.TEXT_PLAIN_TYPE, launcher.service("GET", "/b/c", "", null, null, null)
-         .getContentType());
+      assertEquals(200, service("GET", "/b/c", "", null, null).getStatus());
+      assertEquals(MediaType.TEXT_PLAIN_TYPE, service("GET", "/b/c", "", null, null).getContentType());
 
-      assertEquals(200, launcher.service("GET", "/b/d", "", null, null, null).getStatus());
-      assertEquals(MediaType.TEXT_XML_TYPE, launcher.service("GET", "/b/d", "", null, null, null)
-         .getContentType());
+      assertEquals(200, service("GET", "/b/d", "", null, null).getStatus());
+      assertEquals(MediaType.TEXT_XML_TYPE, service("GET", "/b/d", "", null, null).getContentType());
 
       MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
       headers.add(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON);
 
-      assertEquals(406, launcher.service("GET", "/b/d", "", headers, null, null).getStatus());
-      assertEquals(MediaType.TEXT_XML_TYPE, launcher.service("GET", "/b/d", "", null, null, null)
-         .getContentType());
+      assertEquals(406, service("GET", "/b/d", "", headers, null).getStatus());
+      assertEquals(MediaType.TEXT_XML_TYPE, service("GET", "/b/d", "", null, null).getContentType());
 
       unregistry(resource1);
       unregistry(resource2);
@@ -157,19 +144,19 @@ public class MediaTypeTest extends BaseTest
       MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
       headers.add(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN);
 
-      assertEquals(200, launcher.service("GET", "/d/e", "", headers, null, null).getStatus());
-      assertEquals("m0", launcher.service("GET", "/d/e", "", headers, null, null).getEntity());
+      assertEquals(200, service("GET", "/d/e", "", headers, null).getStatus());
+      assertEquals("m0", service("GET", "/d/e", "", headers, null).getEntity());
 
       headers = new MultivaluedMapImpl();
       headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
 
-      assertEquals(200, launcher.service("GET", "/d/f", "", headers, null, null).getStatus());
-      assertEquals("m1", launcher.service("GET", "/d/f", "", headers, null, null).getEntity());
+      assertEquals(200, service("GET", "/d/f", "", headers, null).getStatus());
+      assertEquals("m1", service("GET", "/d/f", "", headers, null).getEntity());
 
       headers = new MultivaluedMapImpl();
       headers.add(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML);
 
-      assertEquals(415, launcher.service("GET", "/d/f", "", headers, null, null).getStatus());
+      assertEquals(415, service("GET", "/d/f", "", headers, null).getStatus());
 
       unregistry(resource4);
 

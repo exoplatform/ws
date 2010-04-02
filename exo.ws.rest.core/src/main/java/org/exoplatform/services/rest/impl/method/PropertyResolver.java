@@ -19,15 +19,13 @@
 package org.exoplatform.services.rest.impl.method;
 
 import org.exoplatform.services.rest.ApplicationContext;
-import org.exoplatform.services.rest.InitialProperties;
 import org.exoplatform.services.rest.Property;
+import org.exoplatform.services.rest.impl.ApplicationContextImpl;
 
 /**
- * Obtain value of property (see {@link InitialProperties}) with name 
- * supplied in {@link Property#value()} .
- * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
  * @version $Id$
+ *
  */
 public class PropertyResolver extends ParameterResolver<Property>
 {
@@ -46,8 +44,9 @@ public class PropertyResolver extends ParameterResolver<Property>
    }
 
    /**
-    * {@inheritDoc}
+    * @see org.exoplatform.services.rest.impl.method.ParameterResolver#resolve(org.exoplatform.services.rest.Parameter, org.exoplatform.services.rest.ApplicationContext)
     */
+   @Override
    public Object resolve(org.exoplatform.services.rest.Parameter parameter, ApplicationContext context)
       throws Exception
    {

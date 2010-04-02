@@ -20,7 +20,7 @@ package org.exoplatform.services.rest.impl.method;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public final class StringProducer extends BaseTypeProducer
 {

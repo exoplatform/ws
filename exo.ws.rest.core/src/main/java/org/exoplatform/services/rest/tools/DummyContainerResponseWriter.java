@@ -30,7 +30,7 @@ import javax.ws.rs.ext.MessageBodyWriter;
  * entity at all.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public class DummyContainerResponseWriter implements ContainerResponseWriter
 {

@@ -22,13 +22,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.Provider;
 
-import org.exoplatform.services.rest.impl.BaseTest;
-
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
-public class ContextResolverTest extends BaseTest
+public class ContextResolverTest extends org.exoplatform.services.rest.AbstractResourceTest
 {
 
    @Provider

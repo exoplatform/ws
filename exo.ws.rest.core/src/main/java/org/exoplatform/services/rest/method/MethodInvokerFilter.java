@@ -26,7 +26,7 @@ import org.exoplatform.services.rest.resource.GenericMethodResource;
  * JSR-250.
  * 
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public interface MethodInvokerFilter
 {

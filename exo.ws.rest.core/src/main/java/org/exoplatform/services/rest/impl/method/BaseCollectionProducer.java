@@ -32,7 +32,7 @@ import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
- * @version $Id$
+ * @version $Id: $
  */
 public abstract class BaseCollectionProducer implements TypeProducer
 {
