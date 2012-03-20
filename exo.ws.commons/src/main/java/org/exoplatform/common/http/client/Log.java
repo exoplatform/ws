@@ -1,5 +1,5 @@
 /*
- * @(#)Log.java						0.3-3 06/05/2001
+ * @(#)Log.java             0.3-3 06/05/2001
  *
  *  This file is part of the HTTPClient package
  *  Copyright (C) 1996-2001 Ronald Tschal�r
@@ -31,6 +31,9 @@
  */
 
 package org.exoplatform.common.http.client;
+
+import org.exoplatform.commons.utils.PrivilegedSystemHelper;
+import org.exoplatform.services.log.ExoLogger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileWriter;
@@ -70,6 +73,12 @@ import java.util.TimeZone;
  */
 public class Log
 {
+   /**
+    * The logger
+    */
+   private static final org.exoplatform.services.log.Log LOG =
+            ExoLogger.getLogger("org.exoplatform.common.http.client.Log");
+   
    /** The HTTPConnection facility (1) */
    public static final int CONN = 1 << 0;
 
@@ -97,7 +106,7 @@ public class Log
    /** All the facilities - for use in <code>setLogging</code> (-1) */
    public static final int ALL = ~0;
 
-   private static final String NL = System.getProperty("line.separator");
+   private static final String NL = PrivilegedSystemHelper.getProperty("line.separator");
 
    private static final long TZ_OFF;
 
@@ -116,7 +125,7 @@ public class Log
 
       try
       {
-         String file = System.getProperty("HTTPClient.log.file");
+         String file = PrivilegedSystemHelper.getProperty("HTTPClient.log.file");
          if (file != null)
          {
             try
@@ -125,12 +134,16 @@ public class Log
             }
             catch (IOException ioe)
             {
-               System.err.println("failed to open file log stream `" + file + "': " + ioe);
+               LOG.error("failed to open file log stream `" + file + "': " + ioe, ioe);
             }
          }
       }
       catch (Exception e)
       {
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + e.getMessage());
+         }
       }
 
       try
@@ -139,6 +152,10 @@ public class Log
       }
       catch (Exception e)
       {
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + e.getMessage());
+         }
       }
    }
 
@@ -174,8 +191,8 @@ public class Log
       }
       catch (IOException ioe)
       {
-         System.err.println("Failed to write to log: " + ioe);
-         System.err.println("Failed log Entry was: " + msg);
+         LOG.error("Failed to write to log: " + ioe, ioe);
+         LOG.error("Failed log Entry was: " + msg);
       }
    }
 
@@ -208,9 +225,9 @@ public class Log
       }
       catch (IOException ioe)
       {
-         System.err.println("Failed to write to log: " + ioe);
-         System.err.print("Failed log Entry was: " + prefix);
-         t.printStackTrace(System.err);
+         LOG.error("Failed to write to log: " + ioe, ioe);
+         LOG.error("Failed log Entry was: " + prefix);
+         LOG.error(t.getLocalizedMessage(), t);
       }
    }
 
@@ -239,9 +256,9 @@ public class Log
       }
       catch (IOException ioe)
       {
-         System.err.println("Failed to write to log: " + ioe);
-         System.err.println("Failed log Entry was: " + prefix);
-         System.err.println(new String(buf.toByteArray()));
+         LOG.error("Failed to write to log: " + ioe, ioe);
+         LOG.error("Failed log Entry was: " + prefix);
+         LOG.error(new String(buf.toByteArray()));
       }
    }
 
@@ -323,7 +340,7 @@ public class Log
          }
          catch (IOException ioe)
          {
-            System.err.println("Error closing log stream: " + ioe);
+            LOG.error("Error closing log stream: " + ioe, ioe);
          }
       }
 

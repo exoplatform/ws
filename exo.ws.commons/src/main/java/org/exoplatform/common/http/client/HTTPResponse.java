@@ -1,5 +1,5 @@
 /*
- * @(#)HTTPResponse.java				0.3-3 06/05/2001
+ * @(#)HTTPResponse.java             0.3-3 06/05/2001
  *
  *  This file is part of the HTTPClient package
  *  Copyright (C) 1996-2001 Ronald Tschal�r
@@ -32,6 +32,7 @@
 
 package org.exoplatform.common.http.client;
 
+import org.exoplatform.commons.utils.PrivilegedSystemHelper;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 
@@ -113,7 +114,7 @@ public class HTTPResponse implements HTTPClientModuleConstants
    /** the method used in the request */
    private String method = null;
 
-   private static final Log log = ExoLogger.getLogger("exo.ws.commons.HTTPResponse");
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.commons.HTTPResponse");
 
    // Constructors
 
@@ -136,6 +137,10 @@ public class HTTPResponse implements HTTPClientModuleConstants
       }
       catch (ParseException pe)
       {
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + pe.getMessage());
+         }
       }
       this.method = orig.getMethod();
    }
@@ -313,12 +318,17 @@ public class HTTPResponse implements HTTPClientModuleConstants
    public Date getHeaderAsDate(String hdr) throws IOException, IllegalArgumentException, ModuleException
    {
       String raw_date = getHeader(hdr);
+      
       if (raw_date == null)
+      {
          return null;
+      }
 
       // asctime() format is missing an explicit GMT specifier
       if (raw_date.toUpperCase().indexOf("GMT") == -1 && raw_date.indexOf(' ') > 0)
-         raw_date += " GMT";
+      {
+         raw_date += " GMT"; //NOSONAR
+      }
 
       Date date;
 
@@ -413,7 +423,9 @@ public class HTTPResponse implements HTTPClientModuleConstants
 
       // asctime() format is missing an explicit GMT specifier
       if (raw_date.toUpperCase().indexOf("GMT") == -1 && raw_date.indexOf(' ') > 0)
-         raw_date += " GMT";
+      {
+         raw_date += " GMT"; //NOSONAR
+      }
 
       Date date;
 
@@ -496,14 +508,18 @@ public class HTTPResponse implements HTTPClientModuleConstants
          }
          catch (IOException ioe)
          {
-            log.error(method + " " + OriginalURI.getPathAndQuery());
+            LOG.error(method + " " + OriginalURI.getPathAndQuery());
 
             try
             {
                inp_stream.close();
             }
-            catch (Exception e)
+            catch (IOException e)
             {
+               if (LOG.isTraceEnabled())
+               {
+                  LOG.trace("An exception occurred: " + e.getMessage());
+               }
             }
             throw ioe;
          }
@@ -623,6 +639,7 @@ public class HTTPResponse implements HTTPClientModuleConstants
     * produces a full list of headers and their values, one per line.
     * @return a string containing the headers
     */
+   @Override
    public String toString()
    {
       if (!initialized)
@@ -631,18 +648,21 @@ public class HTTPResponse implements HTTPClientModuleConstants
          {
             handleResponse();
          }
-         catch (Exception e)
+         catch (ModuleException e)
          {
-            if (!(e instanceof InterruptedIOException))
-            {
-               log.error(method + " " + OriginalURI.getPathAndQuery());
-            }
+            LOG.error(method + " " + OriginalURI.getPathAndQuery());
+
+            return "Failed to read headers: " + e;
+         }
+         catch (IOException e)
+         {
+            LOG.error(method + " " + OriginalURI.getPathAndQuery());
 
             return "Failed to read headers: " + e;
          }
       }
 
-      String nl = System.getProperty("line.separator", "\n");
+      String nl = PrivilegedSystemHelper.getProperty("line.separator", "\n");
 
       StringBuffer str = new StringBuffer(Version);
       str.append(' ');
@@ -934,6 +954,10 @@ public class HTTPResponse implements HTTPClientModuleConstants
          }
          catch (IOException ioe)
          {
+            if (LOG.isTraceEnabled())
+            {
+               LOG.trace("An exception occurred: " + ioe.getMessage());
+            }
          }
       }
    }

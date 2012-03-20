@@ -1,5 +1,5 @@
 /*
- * @(#)CookieModule.java				0.3-3 06/05/2001
+ * @(#)CookieModule.java             0.3-3 06/05/2001
  *
  *  This file is part of the HTTPClient package
  *  Copyright (C) 1996-2001 Ronald Tschal�r
@@ -32,6 +32,7 @@
 
 package org.exoplatform.common.http.client;
 
+import org.exoplatform.commons.utils.PrivilegedSystemHelper;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 
@@ -113,7 +114,7 @@ public class CookieModule implements HTTPClientModule
    /** the cookie policy handler */
    private static CookiePolicyHandler cookie_handler = new DefaultCookiePolicyHandler();
 
-   private static final Log log = ExoLogger.getLogger("exo.ws.commons.CookieModule");
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.commons.CookieModule");
 
    // read in cookies from disk at startup
 
@@ -137,6 +138,7 @@ public class CookieModule implements HTTPClientModule
 
          cookieSaver = new Object()
          {
+            @Override
             public void finalize()
             {
                saveCookies();
@@ -146,8 +148,12 @@ public class CookieModule implements HTTPClientModule
          {
             System.runFinalizersOnExit(true);
          }
-         catch (Throwable t)
+         catch (SecurityException t)
          {
+            if (LOG.isTraceEnabled())
+            {
+               LOG.trace("An exception occurred: " + t.getMessage());
+            }
          }
       }
    }
@@ -162,11 +168,15 @@ public class CookieModule implements HTTPClientModule
          if (cookie_jar.isFile() && cookie_jar.canRead())
          {
             ObjectInputStream ois = new ObjectInputStream(new FileInputStream(cookie_jar));
-            cookie_cntxt_list.put(HTTPConnection.getDefaultContext(), (Hashtable)ois.readObject());
+            cookie_cntxt_list.put(HTTPConnection.getDefaultContext(), ois.readObject());
             ois.close();
          }
       }
-      catch (Throwable t)
+      catch (IOException t)
+      {
+         cookie_jar = null;
+      }
+      catch (ClassNotFoundException e)
       {
          cookie_jar = null;
       }
@@ -197,8 +207,12 @@ public class CookieModule implements HTTPClientModule
                oos.writeObject(cookie_list);
                oos.close();
             }
-            catch (Throwable t)
+            catch (IOException t)
             {
+               if (LOG.isTraceEnabled())
+               {
+                  LOG.trace("An exception occurred: " + t.getMessage());
+               }
             }
          }
       }
@@ -210,29 +224,33 @@ public class CookieModule implements HTTPClientModule
 
       try
       {
-         file = System.getProperty("HTTPClient.cookies.jar");
+         file = PrivilegedSystemHelper.getProperty("HTTPClient.cookies.jar");
       }
       catch (Exception e)
       {
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + e.getMessage());
+         }
       }
 
       if (file == null)
       {
          // default to something reasonable
 
-         String os = System.getProperty("os.name");
+         String os = PrivilegedSystemHelper.getProperty("os.name");
          if (os.equalsIgnoreCase("Windows 95") || os.equalsIgnoreCase("16-bit Windows")
             || os.equalsIgnoreCase("Windows"))
          {
-            file = System.getProperty("java.home") + File.separator + ".httpclient_cookies";
+            file = PrivilegedSystemHelper.getProperty("java.home") + File.separator + ".httpclient_cookies";
          }
          else if (os.equalsIgnoreCase("Windows NT"))
          {
-            file = System.getProperty("user.home") + File.separator + ".httpclient_cookies";
+            file = PrivilegedSystemHelper.getProperty("user.home") + File.separator + ".httpclient_cookies";
          }
          else if (os.equalsIgnoreCase("OS/2"))
          {
-            file = System.getProperty("user.home") + File.separator + ".httpclient_cookies";
+            file = PrivilegedSystemHelper.getProperty("user.home") + File.separator + ".httpclient_cookies";
          }
          else if (os.equalsIgnoreCase("Mac OS") || os.equalsIgnoreCase("MacOS"))
          {
@@ -241,7 +259,7 @@ public class CookieModule implements HTTPClientModule
          else
          // it's probably U*IX or VMS
          {
-            file = System.getProperty("user.home") + File.separator + ".httpclient_cookies";
+            file = PrivilegedSystemHelper.getProperty("user.home") + File.separator + ".httpclient_cookies";
          }
       }
 
@@ -305,8 +323,8 @@ public class CookieModule implements HTTPClientModule
 
             if (cookie.hasExpired())
             {
-               if (log.isDebugEnabled())
-                  log.debug("Cookie has expired and is being removed: " + cookie);
+               if (LOG.isDebugEnabled())
+                  LOG.debug("Cookie has expired and is being removed: " + cookie);
 
                if (remove_list == null)
                   remove_list = new Vector();
@@ -373,8 +391,8 @@ public class CookieModule implements HTTPClientModule
 
          req.setHeaders(hdrs);
 
-         if (log.isDebugEnabled())
-            log.debug("Sending cookies '" + value + "'");
+         if (LOG.isDebugEnabled())
+            LOG.debug("Sending cookies '" + value + "'");
 
       }
 
@@ -442,11 +460,11 @@ public class CookieModule implements HTTPClientModule
       else
          cookies = Cookie.parse(set_cookie, req);
 
-      if (log.isDebugEnabled())
+      if (LOG.isDebugEnabled())
       {
-         log.debug("Received and parsed " + cookies.length + " cookies:");
+         LOG.debug("Received and parsed " + cookies.length + " cookies:");
          for (int idx = 0; idx < cookies.length; idx++)
-            log.debug("Cookie " + idx + ": " + cookies[idx]);
+            LOG.debug("Cookie " + idx + ": " + cookies[idx]);
       }
 
       Hashtable cookie_list = Util.getList(cookie_cntxt_list, req.getConnection().getContext());
@@ -457,8 +475,8 @@ public class CookieModule implements HTTPClientModule
             Cookie cookie = (Cookie)cookie_list.get(cookies[idx]);
             if (cookie != null && cookies[idx].hasExpired())
             {
-               if (log.isDebugEnabled())
-                  log.debug("Cookie has expired and is " + "being removed: " + cookie);
+               if (LOG.isDebugEnabled())
+                  LOG.debug("Cookie has expired and is " + "being removed: " + cookie);
 
                cookie_list.remove(cookie); // expired, so remove
             }
@@ -664,7 +682,7 @@ class DefaultCookiePolicyHandler implements CookiePolicyHandler
 
       try
       {
-         list = System.getProperty("HTTPClient.cookies.hosts.accept");
+         list = PrivilegedSystemHelper.getProperty("HTTPClient.cookies.hosts.accept");
       }
       catch (Exception e)
       {
@@ -676,7 +694,7 @@ class DefaultCookiePolicyHandler implements CookiePolicyHandler
 
       try
       {
-         list = System.getProperty("HTTPClient.cookies.hosts.reject");
+         list = PrivilegedSystemHelper.getProperty("HTTPClient.cookies.hosts.reject");
       }
       catch (Exception e)
       {
@@ -699,8 +717,11 @@ class DefaultCookiePolicyHandler implements CookiePolicyHandler
    public boolean acceptCookie(Cookie cookie, RoRequest req, RoResponse resp)
    {
       String server = req.getConnection().getHost();
+
       if (server.indexOf('.') == -1)
-         server += ".local";
+      {
+         server += ".local"; //NOSONAR
+      }
 
       // Check lists. Reject takes priority over accept
 
@@ -921,6 +942,7 @@ class BasicCookieBox extends Frame
       constr.gridwidth = GridBagConstraints.REMAINDER;
    }
 
+   @Override
    public Dimension getMaximumSize()
    {
       return new Dimension(screen.width * 3 / 4, screen.height * 3 / 4);
@@ -983,6 +1005,7 @@ class BasicCookieBox extends Frame
 
    private class Close extends WindowAdapter
    {
+      @Override
       public void windowClosing(WindowEvent we)
       {
          new Reject().actionPerformed(null);
@@ -1122,6 +1145,7 @@ class BasicCookieBox extends Frame
  */
 class Separator extends Panel
 {
+   @Override
    public void paint(Graphics g)
    {
       int w = getSize().width, h = getSize().height / 2;
@@ -1132,6 +1156,7 @@ class Separator extends Panel
       g.drawLine(2, h, w - 2, h);
    }
 
+   @Override
    public Dimension getMinimumSize()
    {
       return new Dimension(4, 2);

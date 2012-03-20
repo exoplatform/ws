@@ -43,9 +43,9 @@ public class InputHeadersMapTest extends TestCase
       try
       {
          um = new InputHeadersMap(null);
-         fail("NullPointerException should be here");
+         fail("IllegalArgumentException should be here");
       }
-      catch (NullPointerException e)
+      catch (IllegalArgumentException e)
       {
       }
       MultivaluedMap<String, String> m = new MultivaluedMapImpl();

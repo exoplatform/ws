@@ -1,5 +1,5 @@
 /*
- * @(#)SocksClient.java					0.3-3 06/05/2001
+ * @(#)SocksClient.java             0.3-3 06/05/2001
  *
  *  This file is part of the HTTPClient package
  *  Copyright (C) 1996-2001 Ronald Tschal�r
@@ -32,6 +32,7 @@
 
 package org.exoplatform.common.http.client;
 
+import org.exoplatform.commons.utils.PrivilegedSystemHelper;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 
@@ -59,6 +60,9 @@ import java.net.UnknownHostException;
  */
 class SocksClient
 {
+
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.commons.SocksClient");
+
    /** the host the socks server sits on */
    private String socks_host;
 
@@ -203,6 +207,10 @@ class SocksClient
             }
             catch (IOException ee)
             {
+               if (LOG.isTraceEnabled())
+               {
+                  LOG.trace("An exception occurred: " + ee.getMessage());
+               }
             }
          }
 
@@ -285,7 +293,7 @@ class SocksClient
          String user_str;
          try
          {
-            user_str = System.getProperty("user.name", "");
+            user_str = PrivilegedSystemHelper.getProperty("user.name", "");
          }
          catch (SecurityException se)
          {
@@ -565,6 +573,7 @@ class SocksClient
     * produces a string.
     * @return a string containing the host and port of the socks server
     */
+   @Override
    public String toString()
    {
       return getClass().getName() + "[" + socks_host + ":" + socks_port + "]";

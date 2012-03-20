@@ -25,7 +25,7 @@ import org.exoplatform.services.rest.uri.UriPattern;
 /**
  * Describe Resource Class or Root Resource Class. Resource Class is any Java
  * class that uses JAX-RS annotations to implement corresponding Web resource.
- * 
+ *
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
  * @version $Id: $
  */

@@ -1,5 +1,5 @@
 /*
- * @(#)BufferedInputStream.java				0.3-3 06/05/2001
+ * @(#)BufferedInputStream.java             0.3-3 06/05/2001
  *
  *  This file is part of the HTTPClient package
  *  Copyright (C) 1996-2001 Ronald Tschal�r
@@ -32,6 +32,9 @@
 
 package org.exoplatform.common.http.client;
 
+import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.services.log.Log;
+
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,6 +50,9 @@ import java.io.InputStream;
  */
 class BufferedInputStream extends FilterInputStream
 {
+
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.commons.BufferedInputStream");
+
    /** our read buffer */
    private byte[] buffer = new byte[2000];
 
@@ -182,17 +188,20 @@ class BufferedInputStream extends FilterInputStream
    {
       int avail = end - pos;
       if (avail == 0)
+      {
          return in.available();
+      }
 
       try
       {
          avail += in.available();
       }
       catch (IOException ignored)
-      { /*
-         * ignore this because we have something
-         * available
-         */
+      {
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + ignored.getMessage());
+         }
       }
       return avail;
    }

@@ -18,6 +18,7 @@
  */
 package org.exoplatform.ws.frameworks.json.impl;
 
+import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.ws.frameworks.json.JsonGenerator;
 import org.exoplatform.ws.frameworks.json.impl.JsonUtils.Types;
 import org.exoplatform.ws.frameworks.json.value.JsonValue;
@@ -29,14 +30,17 @@ import org.exoplatform.ws.frameworks.json.value.impl.NullValue;
 import org.exoplatform.ws.frameworks.json.value.impl.ObjectValue;
 import org.exoplatform.ws.frameworks.json.value.impl.StringValue;
 
+import java.io.StringReader;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,39 +52,123 @@ import java.util.Set;
 public class JsonGeneratorImpl implements JsonGenerator
 {
 
+   static final Collection<String> SKIP_METHODS = new HashSet<String>();
+
+   static
+   {
+      // Prevent discovering of Java class.
+      SKIP_METHODS.add("getClass");
+      // Since we need support for Groovy must skip this.
+      // All "Groovy Objects" implements interface groovy.lang.GroovyObject
+      // and has method getMetaClass. Not need to discover it.
+      SKIP_METHODS.add("getMetaClass");
+   }
+
    /**
-    * {@inheritDoc}
+    * Create JSON array from specified collection.
+    *
+    * @param collection source collection
+    * @return JSON representation of collection
+    * @throws JsonException if collection can't be transformed in JSON
+    *         representation
+    */
+   public JsonValue createJsonArray(Collection<?> collection) throws JsonException
+   {
+      return createJsonValue(collection);
+   }
+
+   /**
+    * Create JSON array from specified object. Parameter <code>array</code> must
+    * be array.
+    *
+    * @param array source array
+    * @return JSON representation of array
+    * @throws JsonException if array can't be transformed in JSON representation
+    */
+   public JsonValue createJsonArray(Object array) throws JsonException
+   {
+      if (array == null)
+      {
+         return new NullValue();
+      }
+      Types t = JsonUtils.getType(array);
+      if (t == Types.ARRAY_BOOLEAN || t == Types.ARRAY_BYTE || t == Types.ARRAY_SHORT || t == Types.ARRAY_INT
+         || t == Types.ARRAY_LONG || t == Types.ARRAY_FLOAT || t == Types.ARRAY_DOUBLE || t == Types.ARRAY_CHAR
+         || t == Types.ARRAY_STRING || t == Types.ARRAY_OBJECT)
+      {
+         return createJsonValue(array);
+      }
+      else
+      {
+         throw new JsonException("Invalid argument, must be array.");
+      }
+   }
+
+   /**
+    * Create JSON object from specified map.
+    *
+    * @param map source map
+    * @return JSON representation of map
+    * @throws JsonException if map can't be transformed in JSON representation
+    */
+   public JsonValue createJsonObjectFromMap(Map<String, ?> map) throws JsonException
+   {
+      return createJsonValue(map);
+   }
+
+   /**
+    * Create JSON object from specified string imply it is JSON object in String
+    * format.
+    *
+    * @param s source string
+    * @return JSON representation of map
+    * @throws JsonException if map can't be transformed in JSON representation
+    */
+   public JsonValue createJsonObjectFromString(String s) throws JsonException
+   {
+      JsonParserImpl parser = new JsonParserImpl();
+      JsonDefaultHandler handler = new JsonDefaultHandler();
+      parser.parse(new StringReader(s), handler);
+      return handler.getJsonObject();
+   }
+
+   /**
+    * Create JSON object from specified object. Object must be conform with java
+    * bean structure.
+    *
+    * @param object source object
+    * @return JSON representation of object
+    * @throws JsonException if map can't be transformed in JSON representation
     */
    public JsonValue createJsonObject(Object object) throws JsonException
    {
-      Method[] methods = object.getClass().getMethods();
-
-      List<String> transientFields = getTransientFields(object.getClass());
-
+      Class<?> clazz = object.getClass();
+      Method[] methods = clazz.getMethods();
+      Set<String> transientFields = getTransientFields(clazz);
       JsonValue jsonRootValue = new ObjectValue();
-
       for (Method method : methods)
       {
-         String name = method.getName();
-
+         String methodName = method.getName();
          /*
-          * Method must be as follow: 1. Name starts from "get" plus at least one
-          * character or starts from "is" plus one more character and return
-          * boolean type; 2. Must be without parameters; 3. Not "getClass" method;
+          * Method must be as follow:
+          * 1. Name starts from "get" plus at least one character or
+          * starts from "is" plus one more character and return boolean type;
+          * 2. Must be without parameters;
+          * 3. Not be in SKIP_METHODS set.
           */
          String key = null;
-         if (name.startsWith("get") && name.length() > 3 && method.getParameterTypes().length == 0
-            && !"getClass".equals(name))
+         if (!SKIP_METHODS.contains(methodName) && method.getParameterTypes().length == 0)
          {
-            key = name.substring(3);
+            if (methodName.startsWith("get") && methodName.length() > 3)
+            {
+               key = methodName.substring(3);
+            }
+            else if (methodName.startsWith("is") && methodName.length() > 2
+               && (method.getReturnType() == Boolean.class || method.getReturnType() == boolean.class))
+            {
+               key = methodName.substring(2);
+            }
          }
-         else if (name.startsWith("is") && name.length() > 2
-            && (method.getReturnType() == Boolean.class || method.getReturnType() == boolean.class)
-            && method.getParameterTypes().length == 0)
-         {
-            key = name.substring(2);
-         }
-
          if (key != null)
          {
             // First letter of key to lower case.
@@ -92,7 +180,6 @@ public class JsonGeneratorImpl implements JsonGenerator
                {
                   // Get result of invoke method get...
                   Object invokeResult = method.invoke(object, new Object[0]);
-
                   if (JsonUtils.getType(invokeResult) != null)
                   {
                      jsonRootValue.addElement(key, createJsonValue(invokeResult));
@@ -101,15 +188,14 @@ public class JsonGeneratorImpl implements JsonGenerator
                   {
                      jsonRootValue.addElement(key, createJsonObject(invokeResult));
                   }
-
                }
                catch (InvocationTargetException e)
                {
-                  throw new JsonException(e);
+                  throw new JsonException(e.getMessage(), e);
                }
                catch (IllegalAccessException e)
                {
-                  throw new JsonException(e);
+                  throw new JsonException(e.getMessage(), e);
                }
             }
          }
@@ -124,11 +210,11 @@ public class JsonGeneratorImpl implements JsonGenerator
     * @return JsonValue.
     * @throws JsonException if any errors occurs.
     */
-   @SuppressWarnings("unchecked")
-   protected JsonValue createJsonValue(Object object) throws JsonException
+   @SuppressWarnings({"unchecked", "rawtypes"})
+   private JsonValue createJsonValue(Object object) throws JsonException
    {
-      Types t = JsonUtils.getType(object);
-      switch (t)
+      Types type = JsonUtils.getType(object);
+      switch (type)
       {
          case NULL :
             return new NullValue();
@@ -150,8 +236,10 @@ public class JsonGeneratorImpl implements JsonGenerator
             return new StringValue(Character.toString((Character)object));
          case STRING :
             return new StringValue((String)object);
-         case ENUM:
+         case ENUM :
             return new StringValue(((Enum)object).name());
+         case CLASS :
+            return new StringValue(((Class)object).getName());
          case ARRAY_BOOLEAN : {
             JsonValue jsonArray = new ArrayValue();
             int length = Array.getLength(object);
@@ -248,7 +336,6 @@ public class JsonGeneratorImpl implements JsonGenerator
                   jsonArray.addElement(createJsonObject(el));
                }
             }
-
             return jsonArray;
          }
          case COLLECTION : {
@@ -265,7 +352,6 @@ public class JsonGeneratorImpl implements JsonGenerator
                   jsonArray.addElement(createJsonObject(o));
                }
             }
-
             return jsonArray;
          }
          case MAP :
@@ -284,13 +370,11 @@ public class JsonGeneratorImpl implements JsonGenerator
                   jsonObject.addElement(k, createJsonObject(o));
                }
             }
-
             return jsonObject;
          default :
             // Must not be here!
             return null;
       }
-
    }
 
    /**
@@ -298,20 +382,28 @@ public class JsonGeneratorImpl implements JsonGenerator
     * be not serialized in JSON representation.
     *
     * @param clazz the class.
-    * @return list of fields which must be skiped.
+    * @return set of fields which must be skiped.
     */
-   private static List<String> getTransientFields(Class<?> clazz)
+   private static Set<String> getTransientFields(final Class<?> clazz)
    {
-      List<String> l = new ArrayList<String>();
-      Field[] fields = clazz.getDeclaredFields();
+      Set<String> set = new HashSet<String>();
+      
+      Field[] fields = SecurityHelper.doPrivilegedAction(new PrivilegedAction<Field[]>()
+      {
+         public Field[] run()
+         {
+            return clazz.getDeclaredFields();
+         }
+      });
+
       for (Field f : fields)
       {
          if (Modifier.isTransient(f.getModifiers()))
          {
-            l.add(f.getName());
+            set.add(f.getName());
          }
       }
-      return l;
+      return set;
    }
 
 }

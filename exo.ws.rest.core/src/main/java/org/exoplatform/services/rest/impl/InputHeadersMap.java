@@ -36,8 +36,6 @@ import javax.ws.rs.core.MultivaluedMap;
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
  * @version $Id: $
  */
-// TODO this implementation is not efficient, probably can be better extend
-// java.util.AbstractMap
 public final class InputHeadersMap extends HashMap<String, List<String>> implements MultivaluedMap<String, String>
 {
 
@@ -72,7 +70,9 @@ public final class InputHeadersMap extends HashMap<String, List<String>> impleme
    public InputHeadersMap(Map<String, List<String>> m)
    {
       if (m == null)
-         throw new NullPointerException();
+      {
+         throw new IllegalArgumentException("No null map accepted");
+      }
       this.m = new HashMap<String, List<String>>(m.size());
       for (Map.Entry<String, List<String>> e : m.entrySet())
          this.m.put(e.getKey().toLowerCase(), Collections.unmodifiableList(e.getValue()));

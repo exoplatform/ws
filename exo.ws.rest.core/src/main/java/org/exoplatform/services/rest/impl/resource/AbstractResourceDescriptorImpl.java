@@ -18,18 +18,18 @@
  */
 package org.exoplatform.services.rest.impl.resource;
 
+import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
+import org.exoplatform.services.rest.BaseObjectModel;
 import org.exoplatform.services.rest.ComponentLifecycleScope;
-import org.exoplatform.services.rest.ConstructorDescriptor;
-import org.exoplatform.services.rest.FieldInjector;
-import org.exoplatform.services.rest.impl.ConstructorDescriptorImpl;
-import org.exoplatform.services.rest.impl.FieldInjectorImpl;
 import org.exoplatform.services.rest.impl.header.MediaTypeHelper;
 import org.exoplatform.services.rest.impl.method.DefaultMethodInvoker;
+import org.exoplatform.services.rest.impl.method.MethodInvokerFactory;
 import org.exoplatform.services.rest.impl.method.MethodParameterImpl;
 import org.exoplatform.services.rest.impl.method.OptionsRequestMethodInvoker;
 import org.exoplatform.services.rest.impl.method.ParameterHelper;
+import org.exoplatform.services.rest.method.MethodInvoker;
 import org.exoplatform.services.rest.method.MethodParameter;
 import org.exoplatform.services.rest.resource.AbstractResourceDescriptor;
 import org.exoplatform.services.rest.resource.ResourceDescriptorVisitor;
@@ -42,10 +42,10 @@ import org.exoplatform.services.rest.resource.SubResourceMethodMap;
 import org.exoplatform.services.rest.uri.UriPattern;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -71,28 +71,16 @@ import javax.ws.rs.core.MediaType;
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
  * @version $Id: $
  */
-public class AbstractResourceDescriptorImpl implements AbstractResourceDescriptor
+public class AbstractResourceDescriptorImpl extends BaseObjectModel implements AbstractResourceDescriptor
 {
-
-   /**
-    * Logger.
-    */
+   /** Logger. */
    private static final Log LOG = ExoLogger.getLogger("exo.ws.rest.core.AbstractResourceDescriptorImpl");
 
-   /**
-    * @see PathValue
-    */
+   /** @see PathValue */
    private final PathValue path;
 
-   /**
-    * @see UriPattern
-    */
+   /** @see UriPattern */
    private final UriPattern uriPattern;
-
-   /**
-    * Resource class.
-    */
-   private final Class<?> resourceClass;
 
    /**
     * Sub-resource methods. Sub-resource method has path annotation.
@@ -115,38 +103,54 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
     */
    private final ResourceMethodMap<ResourceMethodDescriptor> resourceMethods;
 
+   private final MethodInvokerFactory invokerFactory;
+
+   public AbstractResourceDescriptorImpl(Class<?> resourceClass, ComponentLifecycleScope scope)
+   {
+      this(resourceClass.getAnnotation(Path.class), resourceClass, scope, null);
+   }
+
    /**
-    * Resource class constructors.
+    * Constructs new instance of AbstractResourceDescriptor.
     * 
-    * @see ConstructorDescriptor
+    * @param resourceClass resource class
+    * @param invokerFactory invoker factory
     */
-   private final List<ConstructorDescriptor> constructors;
+   public AbstractResourceDescriptorImpl(Class<?> resourceClass, MethodInvokerFactory invokerFactory)
+   {
+      this(resourceClass.getAnnotation(Path.class), resourceClass, ComponentLifecycleScope.PER_REQUEST, invokerFactory);
+   }
 
    /**
-    * Resource class fields.
+    * Constructs new instance of AbstractResourceDescriptor.
+    * 
+    * @param resource resource instance
+    * @param invokerFactory invoker factory
     */
-   private final List<FieldInjector> fields;
+   public AbstractResourceDescriptorImpl(Object resource, MethodInvokerFactory invokerFactory)
+   {
+      this(resource.getClass().getAnnotation(Path.class), resource.getClass(), ComponentLifecycleScope.SINGLETON,
+         invokerFactory);
+   }
 
    /**
-    * Constructs new instance of AbstractResourceDescriptor without path
-    * (sub-resource).
+    * Constructs new instance of AbstractResourceDescriptor.
     * 
     * @param resourceClass resource class
     */
    public AbstractResourceDescriptorImpl(Class<?> resourceClass)
    {
-      this(resourceClass.getAnnotation(Path.class), resourceClass, ComponentLifecycleScope.PER_REQUEST);
+      this(resourceClass.getAnnotation(Path.class), resourceClass, ComponentLifecycleScope.PER_REQUEST, null);
    }
 
    /**
-    * Constructs new instance of AbstractResourceDescriptor without path
-    * (sub-resource).
+    * Constructs new instance of AbstractResourceDescriptor.
     * 
     * @param resource resource instance
     */
    public AbstractResourceDescriptorImpl(Object resource)
    {
-      this(resource.getClass().getAnnotation(Path.class), resource.getClass(), ComponentLifecycleScope.SINGLETON);
+      this(resource.getClass().getAnnotation(Path.class), resource.getClass(), ComponentLifecycleScope.SINGLETON, null);
    }
 
    /**
@@ -155,8 +159,10 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
     * @param scope resource scope
     * @see ComponentLifecycleScope
     */
-   private AbstractResourceDescriptorImpl(Path path, Class<?> resourceClass, ComponentLifecycleScope scope)
+   private AbstractResourceDescriptorImpl(Path path, final Class<?> resourceClass, ComponentLifecycleScope scope,
+      MethodInvokerFactory invokerFactory)
    {
+      super(resourceClass, scope);
       if (path != null)
       {
          this.path = new PathValue(path.value());
@@ -167,53 +173,7 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
          this.path = null;
          uriPattern = null;
       }
-
-      this.resourceClass = resourceClass;
-
-      this.constructors = new ArrayList<ConstructorDescriptor>();
-      this.fields = new ArrayList<FieldInjector>();
-      if (scope == ComponentLifecycleScope.PER_REQUEST)
-      {
-         for (Constructor<?> constructor : resourceClass.getConstructors())
-         {
-            constructors.add(new ConstructorDescriptorImpl(resourceClass, constructor));
-         }
-         if (constructors.size() == 0)
-         {
-            String msg = "Not found accepted constructors for resource class " + resourceClass.getName();
-            throw new RuntimeException(msg);
-         }
-         // Sort constructors in number parameters order
-         if (constructors.size() > 1)
-         {
-            Collections.sort(constructors, ConstructorDescriptorImpl.CONSTRUCTOR_COMPARATOR);
-         }
-         // process field
-         for (java.lang.reflect.Field jfield : resourceClass.getDeclaredFields())
-         {
-            fields.add(new FieldInjectorImpl(resourceClass, jfield));
-         }
-         Class<?> sc = resourceClass;
-         while (sc != Object.class)
-         {
-            for (java.lang.reflect.Field jfield : sc.getDeclaredFields())
-            {
-               int modif = jfield.getModifiers();
-               // TODO process fields with package visibility.
-               if (Modifier.isPublic(modif) || Modifier.isProtected(modif))
-               {
-                  FieldInjector inj = new FieldInjectorImpl(resourceClass, jfield);
-                  // Skip not annotated field. They will be not injected from container.  
-                  if (inj.getAnnotation() != null)
-                  {
-                     fields.add(new FieldInjectorImpl(resourceClass, jfield));
-                  }
-               }
-            }
-            sc = sc.getSuperclass();
-         }
-      }
-
+      this.invokerFactory = invokerFactory;
       this.resourceMethods = new ResourceMethodMap<ResourceMethodDescriptor>();
       this.subResourceMethods = new SubResourceMethodMap();
       this.subResourceLocators = new SubResourceLocatorMap();
@@ -226,30 +186,6 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
    public void accept(ResourceDescriptorVisitor visitor)
    {
       visitor.visitAbstractResourceDescriptor(this);
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public List<ConstructorDescriptor> getConstructorDescriptors()
-   {
-      return constructors;
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public List<FieldInjector> getFieldInjectors()
-   {
-      return fields;
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public Class<?> getObjectClass()
-   {
-      return resourceClass;
    }
 
    /**
@@ -306,9 +242,16 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
     */
    protected void processMethods()
    {
-      Class<?> resourceClass = getObjectClass();
+      final Class<?> resourceClass = getObjectClass();
 
-      for (Method method : resourceClass.getDeclaredMethods())
+      Method[] methods = SecurityHelper.doPrivilegedAction(new PrivilegedAction<Method[]>() {
+         public Method[] run()
+         {
+            return resourceClass.getDeclaredMethods();
+         }
+      });
+
+      for (Method method : methods)
       {
          for (Annotation a : method.getAnnotations())
          {
@@ -338,13 +281,17 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
 
                Produces p = getMethodAnnotation(method, resourceClass, Produces.class, false);
                if (p == null)
+               {
                   p = resourceClass.getAnnotation(Produces.class); // from resource
+               }
                // class
                List<MediaType> produces = MediaTypeHelper.createProducesList(p);
 
                Consumes c = getMethodAnnotation(method, resourceClass, Consumes.class, false);
                if (c == null)
+               {
                   c = resourceClass.getAnnotation(Consumes.class); // from resource
+               }
                // class
                List<MediaType> consumes = MediaTypeHelper.createConsumesList(c);
 
@@ -353,10 +300,10 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
                   // resource method
                   ResourceMethodDescriptor res =
                      new ResourceMethodDescriptorImpl(method, httpMethod.value(), params, this, consumes, produces,
-                        new DefaultMethodInvoker());
+                        getMethodInvoker());
                   ResourceMethodDescriptor exist =
-                     findMethodResourceMediaType(resourceMethods.getList(httpMethod.value()), res.consumes(), res
-                        .produces());
+                     findMethodResourceMediaType(resourceMethods.getList(httpMethod.value()), res.consumes(),
+                        res.produces());
                   if (exist == null)
                   {
                      resourceMethods.add(httpMethod.value(), res);
@@ -374,11 +321,10 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
                   // sub-resource method
                   SubResourceMethodDescriptor subRes =
                      new SubResourceMethodDescriptorImpl(new PathValue(subPath.value()), method, httpMethod.value(),
-                        params, this, consumes, produces, new DefaultMethodInvoker());
+                        params, this, consumes, produces, getMethodInvoker());
                   SubResourceMethodDescriptor exist = null;
                   ResourceMethodMap<SubResourceMethodDescriptor> rmm =
-                     (ResourceMethodMap<SubResourceMethodDescriptor>)subResourceMethods.getMethodMap(subRes
-                        .getUriPattern());
+                     subResourceMethods.getMethodMap(subRes.getUriPattern());
                   // rmm is never null, empty map instead
 
                   List<SubResourceMethodDescriptor> l = rmm.getList(httpMethod.value());
@@ -404,7 +350,7 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
                   // sub-resource locator
                   SubResourceLocatorDescriptor loc =
                      new SubResourceLocatorDescriptorImpl(new PathValue(subPath.value()), method, params, this,
-                        new DefaultMethodInvoker());
+                        getMethodInvoker());
                   if (!subResourceLocators.containsKey(loc.getUriPattern()))
                   {
                      subResourceLocators.put(loc.getUriPattern(), loc);
@@ -420,15 +366,6 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
             }
          }
       }
-      int resMethodCount = resourceMethods.size() + subResourceMethods.size() + subResourceLocators.size();
-      if (resMethodCount == 0)
-      {
-         String msg =
-            "Not found any resource methods, sub-resource methods" + " or sub-resource locators in "
-               + resourceClass.getName();
-         throw new RuntimeException(msg);
-      }
-
       // End method processing.
       // Start HEAD and OPTIONS resolving, see JAX-RS (JSR-311) specification
       // section 3.3.5
@@ -437,7 +374,7 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
 
       resourceMethods.sort();
       subResourceMethods.sort();
-      // sub-resource locators already sorted 
+      // sub-resource locators already sorted
    }
 
    /**
@@ -451,7 +388,9 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
    {
       Class<?>[] parameterClasses = method.getParameterTypes();
       if (parameterClasses.length == 0)
+      {
          return java.util.Collections.emptyList();
+      }
 
       Type[] parameterGenTypes = method.getGenericParameterTypes();
       Annotation[][] annotations = method.getParameterAnnotations();
@@ -516,8 +455,8 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
     * <p>
     * On receipt of a HEAD request an implementation MUST either: 1. Call method
     * annotated with request method designation for HEAD or, if none present, 2.
-    * Call method annotated with a request method designation GET and discard any
-    * returned entity.
+    * Call method annotated with a request method designation GET and discard
+    * any returned entity.
     * </p>
     */
    protected void resolveHeadRequest()
@@ -525,7 +464,9 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
 
       List<ResourceMethodDescriptor> getRes = resourceMethods.get(HttpMethod.GET);
       if (getRes == null || getRes.size() == 0)
+      {
          return; // nothing to do, there is not 'GET' methods
+      }
 
       // If there is no methods for 'HEAD' anyway never return null.
       // Instead null empty List will be returned.
@@ -534,15 +475,19 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
       for (ResourceMethodDescriptor rmd : getRes)
       {
          if (findMethodResourceMediaType(headRes, rmd.consumes(), rmd.produces()) == null)
+         {
             headRes.add(new ResourceMethodDescriptorImpl(rmd.getMethod(), HttpMethod.HEAD, rmd.getMethodParameters(),
                this, rmd.consumes(), rmd.produces(), rmd.getMethodInvoker()));
+         }
       }
       for (ResourceMethodMap<SubResourceMethodDescriptor> rmm : subResourceMethods.values())
       {
 
          List<SubResourceMethodDescriptor> getSubres = rmm.get(HttpMethod.GET);
          if (getSubres == null || getSubres.size() == 0)
+         {
             continue; // nothing to do, there is not 'GET' methods
+         }
 
          // If there is no methods for 'HEAD' anyway never return null.
          // Instead null empty List will be returned.
@@ -551,12 +496,12 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
          Iterator<SubResourceMethodDescriptor> i = getSubres.iterator();
          while (i.hasNext())
          {
-            SubResourceMethodDescriptor srmd = (SubResourceMethodDescriptor)i.next();
+            SubResourceMethodDescriptor srmd = i.next();
             if (findMethodResourceMediaType(headSubres, srmd.consumes(), srmd.produces()) == null)
             {
                headSubres.add(new SubResourceMethodDescriptorImpl(srmd.getPathValue(), srmd.getMethod(),
                   HttpMethod.HEAD, srmd.getMethodParameters(), this, srmd.consumes(), srmd.produces(),
-                  new DefaultMethodInvoker()));
+                  getMethodInvoker()));
             }
          }
       }
@@ -583,7 +528,6 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
          o.add(new OptionsRequestResourceMethodDescriptorImpl(null, "OPTIONS", mps, this, consumes, produces,
             new OptionsRequestMethodInvoker()));
       }
-      // TODO need process sub-resources ? 
    }
 
    /**
@@ -602,7 +546,9 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
       {
          T endPoint = null;
          if ((endPoint = a.annotationType().getAnnotation(annotation)) != null)
+         {
             return endPoint;
+         }
       }
       return null;
    }
@@ -616,29 +562,41 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
     * @param resourceClass class that contains discovered method
     * @param annotationClass annotation type what we are looking for
     * @param metaAnnotation false if annotation should be on method and true in
-    *          method should contain annotations that has supplied annotation
+    *           method should contain annotations that has supplied annotation
     * @return annotation from class or its ancestor or null if nothing found
     */
    protected <T extends Annotation> T getMethodAnnotation(Method method, Class<?> resourceClass,
       Class<T> annotationClass, boolean metaAnnotation)
    {
-
       T annotation = null;
       if (metaAnnotation)
+      {
          annotation = getMetaAnnotation(method, annotationClass);
+      }
       else
+      {
          annotation = method.getAnnotation(annotationClass);
+      }
 
       if (annotation == null)
       {
-
          Method inhMethod = null;
-
-         try
+         Class<?> superclass = resourceClass.getSuperclass();
+         if (superclass != null)
          {
-            inhMethod = resourceClass.getSuperclass().getMethod(method.getName(), method.getParameterTypes());
+            try
+            {
+               inhMethod = superclass.getMethod(method.getName(), method.getParameterTypes());
+            }
+            catch (NoSuchMethodException e)
+            {
+               if (LOG.isTraceEnabled())
+               {
+                  LOG.trace("An exception occurred: " + e.getMessage());
+               }
+            }
          }
-         catch (NoSuchMethodException e)
+         if (inhMethod == null)
          {
             for (Class<?> intf : resourceClass.getInterfaces())
             {
@@ -660,16 +618,23 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
                }
                catch (NoSuchMethodException exc)
                {
+                  if (LOG.isTraceEnabled())
+                  {
+                     LOG.trace("An exception occurred: " + exc.getMessage());
+                  }
                }
             }
          }
-
          if (inhMethod != null)
          {
             if (metaAnnotation)
+            {
                annotation = getMetaAnnotation(inhMethod, annotationClass);
+            }
             else
+            {
                annotation = inhMethod.getAnnotation(annotationClass);
+            }
          }
       }
 
@@ -693,9 +658,13 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
       for (T rmd : rmds)
       {
          if (rmd.consumes().size() != consumes.size())
+         {
             return null;
+         }
          if (rmd.produces().size() != produces.size())
+         {
             return null;
+         }
          for (MediaType c1 : rmd.consumes())
          {
             boolean eq = false;
@@ -708,7 +677,9 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
                }
             }
             if (!eq)
+            {
                return null;
+            }
          }
 
          for (MediaType p1 : rmd.produces())
@@ -723,7 +694,9 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
                }
             }
             if (!eq)
+            {
                return null;
+            }
          }
 
          matched = rmd; // matched resource method
@@ -733,6 +706,15 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
       return matched;
    }
 
+   protected MethodInvoker getMethodInvoker()
+   {
+      if (invokerFactory != null)
+      {
+         return invokerFactory.getMethodInvoker();
+      }
+      return new DefaultMethodInvoker();
+   }
+
    /**
     * {@inheritDoc}
     */
@@ -740,8 +722,8 @@ public class AbstractResourceDescriptorImpl implements AbstractResourceDescripto
    public String toString()
    {
       StringBuffer sb = new StringBuffer("[ AbstractResourceDescriptorImpl: ");
-      sb.append("path: " + getPathValue()).append("; isRootResource: " + isRootResource()).append(
-         "; class: " + getObjectClass()).append(" ]");
+      sb.append("path: " + getPathValue()).append("; isRootResource: " + isRootResource())
+         .append("; class: " + getObjectClass()).append(" ]");
       return sb.toString();
    }
 

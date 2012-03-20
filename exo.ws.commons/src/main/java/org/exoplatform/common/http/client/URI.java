@@ -1,5 +1,5 @@
 /*
- * @(#)URI.java						0.3-3 06/05/2001
+ * @(#)URI.java              0.3-3 06/05/2001
  *
  *  This file is part of the HTTPClient package
  *  Copyright (C) 1996-2001 Ronald Tschal�r
@@ -31,6 +31,8 @@
  */
 
 package org.exoplatform.common.http.client;
+
+import org.exoplatform.commons.utils.PrivilegedSystemHelper;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -78,8 +80,8 @@ public class URI
     * <PRE>
     * base   = http://a/b/c/d;p?q
     * rel    = http:g
-    * result = http:g		(correct)
-    * result = http://a/b/c/g	(backwards compatible)
+    * result = http:g      (correct)
+    * result = http://a/b/c/g (backwards compatible)
     * </PRE>
     * 
     * See rfc-2396, section 5.2, step 3, second paragraph.
@@ -555,8 +557,8 @@ public class URI
    public static String canonicalizePath(String path)
    {
       int idx, len = path.length();
-      if (!((idx = path.indexOf("/.")) != -1 && (idx == len - 2 || path.charAt(idx + 2) == '/' || (path.charAt(idx + 2) == '.' && (idx == len - 3 || path
-         .charAt(idx + 3) == '/')))))
+      if (!((idx = path.indexOf("/.")) != -1 && (idx == len - 2 || path.charAt(idx + 2) == '/' 
+         || (path.charAt(idx + 2) == '.' && (idx == len - 3 || path.charAt(idx + 3) == '/')))))
          return path;
 
       char[] p = new char[path.length()]; // clean path
@@ -1047,6 +1049,7 @@ public class URI
     * @return the URI as a string
     * @see #toExternalForm()
     */
+   @Override
    public String toString()
    {
       return stringify(true);
@@ -1056,6 +1059,7 @@ public class URI
     * @return true if <var>other</var> is either a URI or URL and it matches the
     *         current URI
     */
+   @Override
    public boolean equals(Object other)
    {
       if (other instanceof URI)
@@ -1149,6 +1153,7 @@ public class URI
     * The hash code is calculated over scheme, host, path, and query.
     * @return the hash code
     */
+   @Override
    public int hashCode()
    {
       if (hashCode == -1)
@@ -1419,8 +1424,8 @@ public class URI
     */
    public static void main(String args[]) throws Exception
    {
-      System.err.println();
-      System.err.println("*** URI Tests ...");
+      System.err.println(); //NOSONAR
+      System.err.println("*** URI Tests ..."); //NOSONAR
 
       /*
        * Relative URI test set, taken from Section C of rfc-2396 and Roy's test1.
@@ -1776,10 +1781,10 @@ public class URI
       testUnescape("%71there", "qthere");
       testUnescape("%B1there", "\u00B1there");
 
-      System.err.println("*** Tests finished successfuly");
+      System.err.println("*** Tests finished successfuly"); //NOSONAR
    }
 
-   private static final String nl = System.getProperty("line.separator");
+   private static final String nl = PrivilegedSystemHelper.getProperty("line.separator");
 
    private static void testParser(URI base, String relURI, String result) throws Exception
    {

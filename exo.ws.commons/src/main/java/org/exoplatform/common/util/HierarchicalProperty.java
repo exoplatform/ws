@@ -18,13 +18,14 @@
  */
 package org.exoplatform.common.util;
 
+import org.exoplatform.commons.utils.Tools;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.TimeZone;
 
 import javax.xml.namespace.QName;
 
@@ -103,7 +104,7 @@ public class HierarchicalProperty
    {
       this(name, null);
       SimpleDateFormat dateFormat = new SimpleDateFormat(formatPattern, Locale.ENGLISH);
-      dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+      dateFormat.setTimeZone(Tools.getTimeZone("GMT"));
       this.value = dateFormat.format(dateValue.getTime());
    }
 
@@ -239,9 +240,14 @@ public class HierarchicalProperty
 
    private String makeStringFromQName(QName qname)
    {
-      String str = "";
+      StringBuilder str = new StringBuilder();
+
       if (qname.getPrefix() != null && qname.getPrefix().length() > 0)
-         str += qname.getPrefix() + ":";
-      return str + qname.getLocalPart();
+      {
+         str.append(qname.getPrefix());
+         str.append(":");
+      }
+
+      return str.append(qname.getLocalPart()).toString();
    }
 }

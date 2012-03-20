@@ -20,7 +20,7 @@ package org.exoplatform.services.rest.impl.resource;
 
 /**
  * Describe the Path annotation, see {@link javax.ws.rs.Path}.
- * 
+ *
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
  * @version $Id: $
  */
@@ -53,7 +53,7 @@ public class PathValue
     */
    public String toString()
    {
-      return "( " + path + " )";
+      return "(" + path + ")";
    }
 
 }

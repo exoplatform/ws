@@ -1,5 +1,5 @@
 /*
- * @(#)Codecs.java					0.3-3 06/05/2001
+ * @(#)Codecs.java             0.3-3 06/05/2001
  *
  *  This file is part of the HTTPClient package
  *  Copyright (C) 1996-2001 Ronald Tschal�r
@@ -32,6 +32,8 @@
 
 package org.exoplatform.common.http.client;
 
+import org.exoplatform.commons.utils.PrivilegedSystemHelper;
+
 import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.File;
@@ -43,7 +45,6 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLConnection;
 import java.util.BitSet;
-import java.util.StringTokenizer;
 import java.util.Vector;
 
 /**
@@ -284,7 +285,7 @@ public class Codecs
       int line_len = 45; // line length, in octets
 
       int sidx, didx;
-      char nl[] = System.getProperty("line.separator", "\n").toCharArray(), dest[] =
+      char nl[] = PrivilegedSystemHelper.getProperty("line.separator", "\n").toCharArray(), dest[] =
          new char[(data.length + 2) / 3 * 4 + ((data.length + line_len - 1) / line_len) * (nl.length + 1)];
 
       // split into lines, adding line-length and line terminator
@@ -345,67 +346,6 @@ public class Codecs
          throw new Error("Calculated " + dest.length + " chars but wrote " + didx + " chars!");
 
       return dest;
-   }
-
-   /**
-    * TBD! How to return file name and mode?
-    * @param rdr the reader from which to read and decode the data
-    * @exception ParseException if either the "begin" or "end" line are not
-    *              found, or the "begin" is incorrect
-    * @exception IOException if the <var>rdr</var> throws an IOException
-    */
-   private final static byte[] uudecode(BufferedReader rdr) throws ParseException, IOException
-   {
-      String line, file_name;
-      int file_mode;
-
-      // search for beginning
-
-      while ((line = rdr.readLine()) != null && !line.startsWith("begin "));
-      if (line == null)
-         throw new ParseException("'begin' line not found");
-
-      // parse 'begin' line
-
-      StringTokenizer tok = new StringTokenizer(line);
-      tok.nextToken(); // throw away 'begin'
-      try
-      // extract mode
-      {
-         file_mode = Integer.parseInt(tok.nextToken(), 8);
-      }
-      catch (Exception e)
-      {
-         throw new ParseException("Invalid mode on line: " + line);
-      }
-      try
-      // extract name
-      {
-         file_name = tok.nextToken();
-      }
-      catch (java.util.NoSuchElementException e)
-      {
-         throw new ParseException("No file name found on line: " + line);
-      }
-
-      // read and parse body
-
-      byte[] body = new byte[1000];
-      int off = 0;
-
-      while ((line = rdr.readLine()) != null && !line.equals("end"))
-      {
-         byte[] tmp = uudecode(line.toCharArray());
-         if (off + tmp.length > body.length)
-            body = Util.resizeArray(body, off + 1000);
-         System.arraycopy(tmp, 0, body, off, tmp.length);
-         off += tmp.length;
-      }
-
-      if (line == null)
-         throw new ParseException("'end' line not found");
-
-      return Util.resizeArray(body, off);
    }
 
    /**
@@ -476,10 +416,11 @@ public class Codecs
          return null;
 
       char map[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'}, nl[] =
-         System.getProperty("line.separator", "\n").toCharArray(), res[] = new char[(int)(str.length() * 1.5)], src[] =
+         PrivilegedSystemHelper.getProperty("line.separator", "\n").toCharArray(), res[] =
+         new char[(int)(str.length() * 1.5)], src[] =
          str.toCharArray();
       char ch;
-      int cnt = 0, didx = 1, last = 0, slen = str.length();
+      int cnt = 0, didx = 1, slen = str.length();
 
       for (int sidx = 0; sidx < slen; sidx++)
       {
@@ -505,7 +446,7 @@ public class Codecs
             sidx += nl.length - 1;
             cnt = didx;
          }
-         else if (ch > 126 || (ch < 32 && ch != '\t') || ch == '=' || EBCDICUnsafeChar.get((int)ch))
+         else if (ch > 126 || (ch < 32 && ch != '\t') || ch == '=' || EBCDICUnsafeChar.get(ch))
          { // Rule
             // #1,
             // #2
@@ -560,7 +501,7 @@ public class Codecs
          return null;
 
       char res[] = new char[(int)(str.length() * 1.1)], src[] = str.toCharArray(), nl[] =
-         System.getProperty("line.separator", "\n").toCharArray();
+         PrivilegedSystemHelper.getProperty("line.separator", "\n").toCharArray();
       int last = 0, didx = 0, slen = str.length();
 
       for (int sidx = 0; sidx < slen;)
@@ -799,8 +740,12 @@ public class Codecs
          {
             int next = findEOL(data, start) + 2;
             if (next - 2 <= start)
+            {
                break; // empty line -> end of headers
+            }
+
             hdr = new String(data, start, next - 2 - start, "8859_1");
+
             start = next;
 
             // handle line continuation
@@ -808,12 +753,13 @@ public class Codecs
             while (next < data.length - 1 && ((ch = data[next]) == ' ' || ch == '\t'))
             {
                next = findEOL(data, start) + 2;
-               hdr += new String(data, start, next - 2 - start, "8859_1");
+               hdr += new String(data, start, next - 2 - start, "8859_1"); //NOSONAR
                start = next;
             }
 
             if (!hdr.regionMatches(true, 0, "Content-Disposition", 0, 19))
                continue;
+
             Vector pcd = Util.parseHeader(hdr.substring(hdr.indexOf(':') + 1));
             HttpHeaderElement elem = Util.getElement(pcd, "form-data");
 
@@ -1188,6 +1134,7 @@ public class Codecs
          super(null);
       }
 
+      @Override
       public void connect()
       {
       }

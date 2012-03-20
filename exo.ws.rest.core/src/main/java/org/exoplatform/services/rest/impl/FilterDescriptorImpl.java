@@ -18,18 +18,12 @@
  */
 package org.exoplatform.services.rest.impl;
 
+import org.exoplatform.services.rest.BaseObjectModel;
 import org.exoplatform.services.rest.ComponentLifecycleScope;
-import org.exoplatform.services.rest.ConstructorDescriptor;
-import org.exoplatform.services.rest.FieldInjector;
 import org.exoplatform.services.rest.FilterDescriptor;
 import org.exoplatform.services.rest.impl.resource.PathValue;
 import org.exoplatform.services.rest.resource.ResourceDescriptorVisitor;
 import org.exoplatform.services.rest.uri.UriPattern;
-
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 import javax.ws.rs.Path;
 
@@ -37,14 +31,8 @@ import javax.ws.rs.Path;
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
  * @version $Id: $
  */
-public class FilterDescriptorImpl implements FilterDescriptor
+public class FilterDescriptorImpl extends BaseObjectModel implements FilterDescriptor
 {
-
-   /**
-    * Filter class.
-    */
-   private final Class<?> filterClass;
-
    /**
     * @see PathValue
     */
@@ -54,18 +42,6 @@ public class FilterDescriptorImpl implements FilterDescriptor
     * @see UriPattern
     */
    private final UriPattern uriPattern;
-
-   /**
-    * Filter class constructors.
-    * 
-    * @see ConstructorDescriptor
-    */
-   private final List<ConstructorDescriptor> constructors;
-
-   /**
-    * Filter class fields.
-    */
-   private final List<FieldInjector> fields;
 
    /**
     * @param filterClass {@link Class} of filter
@@ -90,6 +66,7 @@ public class FilterDescriptorImpl implements FilterDescriptor
     */
    private FilterDescriptorImpl(Class<?> filterClass, ComponentLifecycleScope scope)
    {
+      super(filterClass, scope);
       final Path p = filterClass.getAnnotation(Path.class);
       if (p != null)
       {
@@ -101,33 +78,6 @@ public class FilterDescriptorImpl implements FilterDescriptor
          this.path = null;
          this.uriPattern = null;
       }
-
-      this.filterClass = filterClass;
-
-      this.constructors = new ArrayList<ConstructorDescriptor>();
-      this.fields = new ArrayList<FieldInjector>();
-      if (scope == ComponentLifecycleScope.PER_REQUEST)
-      {
-         for (Constructor<?> constructor : filterClass.getConstructors())
-         {
-            constructors.add(new ConstructorDescriptorImpl(filterClass, constructor));
-         }
-         if (constructors.size() == 0)
-         {
-            String msg = "Not found accepted constructors for filter class " + filterClass.getName();
-            throw new RuntimeException(msg);
-         }
-         // Sort constructors in number parameters order
-         if (constructors.size() > 1)
-         {
-            Collections.sort(constructors, ConstructorDescriptorImpl.CONSTRUCTOR_COMPARATOR);
-         }
-         // process field
-         for (java.lang.reflect.Field jfield : filterClass.getDeclaredFields())
-         {
-            fields.add(new FieldInjectorImpl(filterClass, jfield));
-         }
-      }
    }
 
    /**
@@ -136,30 +86,6 @@ public class FilterDescriptorImpl implements FilterDescriptor
    public void accept(ResourceDescriptorVisitor visitor)
    {
       visitor.visitFilterDescriptor(this);
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public List<ConstructorDescriptor> getConstructorDescriptors()
-   {
-      return constructors;
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public List<FieldInjector> getFieldInjectors()
-   {
-      return fields;
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   public Class<?> getObjectClass()
-   {
-      return filterClass;
    }
 
    /**
@@ -189,5 +115,4 @@ public class FilterDescriptorImpl implements FilterDescriptor
          getConstructorDescriptors() + "; ").append(getFieldInjectors()).append(" ]");
       return sb.toString();
    }
-
 }

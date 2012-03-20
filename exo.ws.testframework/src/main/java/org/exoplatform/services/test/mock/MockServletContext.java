@@ -18,6 +18,9 @@
  */
 package org.exoplatform.services.test.mock;
 
+import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.services.log.Log;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,6 +46,8 @@ import javax.servlet.ServletException;
  */
 public class MockServletContext implements ServletContext
 {
+
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.testframework.MockServletContext");
 
    /** The name. */
    private String name;
@@ -182,6 +187,10 @@ public class MockServletContext implements ServletContext
       }
       catch (MalformedURLException e)
       {
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + e.getMessage());
+         }
       }
       return set;
    }
@@ -207,7 +216,7 @@ public class MockServletContext implements ServletContext
       }
       catch (IOException e)
       {
-         e.printStackTrace();
+         e.printStackTrace(); //NOSONAR
       }
       return null;
    }

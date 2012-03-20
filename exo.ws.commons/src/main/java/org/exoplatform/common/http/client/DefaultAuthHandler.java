@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultAuthHandler.java				0.3-3 06/05/2001
+ * @(#)DefaultAuthHandler.java             0.3-3 06/05/2001
  *
  *  This file is part of the HTTPClient package
  *  Copyright (C) 1996-2001 Ronald Tschal�r
@@ -32,6 +32,7 @@
 
 package org.exoplatform.common.http.client;
 
+import org.exoplatform.commons.utils.PrivilegedSystemHelper;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 
@@ -78,6 +79,11 @@ import java.util.Vector;
  */
 public class DefaultAuthHandler implements AuthorizationHandler, GlobalConstants
 {
+   /**
+    * The logger
+    */
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.commons.DefaultAuthHandler");
+
    private static final byte[] NUL = new byte[0];
 
    private static final int DI_A1 = 0;
@@ -91,8 +97,6 @@ public class DefaultAuthHandler implements AuthorizationHandler, GlobalConstants
    private static AuthorizationPrompter prompter = null;
 
    private static boolean prompterSet = false;
-
-   private static final Log log = ExoLogger.getLogger("exo.ws.commons.DefaultAuthHandler");
 
    /**
     * For Digest authentication we need to set the uri, response and opaque
@@ -108,8 +112,8 @@ public class DefaultAuthHandler implements AuthorizationHandler, GlobalConstants
       else if (!info.getScheme().equalsIgnoreCase("Digest"))
          throw new AuthSchemeNotImplException(info.getScheme());
 
-      if (log.isDebugEnabled())
-         log.debug("Fixing up Authorization for host " + info.getHost() + ":" + info.getPort() + "; scheme: "
+      if (LOG.isDebugEnabled())
+         LOG.debug("Fixing up Authorization for host " + info.getHost() + ":" + info.getPort() + "; scheme: "
             + info.getScheme() + "; realm: " + info.getRealm());
 
       return digest_fixup(info, req, challenge, resp);
@@ -129,8 +133,8 @@ public class DefaultAuthHandler implements AuthorizationHandler, GlobalConstants
    {
       AuthorizationInfo cred;
 
-      if (log.isDebugEnabled())
-         log.debug("Requesting Authorization for host " + challenge.getHost() + ":" + challenge.getPort()
+      if (LOG.isDebugEnabled())
+         LOG.debug("Requesting Authorization for host " + challenge.getHost() + ":" + challenge.getPort()
             + "; scheme: " + challenge.getScheme() + "; realm: " + challenge.getRealm());
 
       // we only handle Basic, Digest and SOCKS5 authentication
@@ -192,12 +196,11 @@ public class DefaultAuthHandler implements AuthorizationHandler, GlobalConstants
       // try to get rid of any unencoded passwords in memory
 
       answer = null;
-      System.gc();
 
       // Done
 
-      if (log.isDebugEnabled())
-         log.debug("Got Authorization");
+      if (LOG.isDebugEnabled())
+         LOG.debug("Got Authorization");
 
       return cred;
    }
@@ -628,6 +631,10 @@ public class DefaultAuthHandler implements AuthorizationHandler, GlobalConstants
          }
          catch (ParseException pe)
          {
+            if (LOG.isTraceEnabled())
+            {
+               LOG.trace("An exception occurred: " + pe.getMessage());
+            }
          }
 
          StringTokenizer tok = new StringTokenizer(ch_params[ch_domain].getValue());
@@ -744,15 +751,15 @@ public class DefaultAuthHandler implements AuthorizationHandler, GlobalConstants
 
       if (resp.hasEntity())
       {
-         if (log.isDebugEnabled())
-            log.debug("Pushing md5-check-stream to verify digest from " + hdr_name);
+         if (LOG.isDebugEnabled())
+            LOG.debug("Pushing md5-check-stream to verify digest from " + hdr_name);
 
          resp.inp_stream = new MD5InputStream(resp.inp_stream, verifier);
       }
       else
       {
-         if (log.isDebugEnabled())
-            log.debug("Verifying digest from " + hdr_name);
+         if (LOG.isDebugEnabled())
+            LOG.debug("Verifying digest from " + hdr_name);
 
          verifier.verifyHash(MD5.digest(NUL), 0);
       }
@@ -804,8 +811,8 @@ public class DefaultAuthHandler implements AuthorizationHandler, GlobalConstants
          && (qop.getValue().equalsIgnoreCase("auth") || !resp.hasEntity()
             && qop.getValue().equalsIgnoreCase("auth-int")))
       {
-         if (log.isDebugEnabled())
-            log.debug("Verifying rspauth from " + hdr_name);
+         if (LOG.isDebugEnabled())
+            LOG.debug("Verifying rspauth from " + hdr_name);
 
          verifier.verifyHash(MD5.digest(NUL), 0);
       }
@@ -813,8 +820,8 @@ public class DefaultAuthHandler implements AuthorizationHandler, GlobalConstants
       {
          // else push md5 stream and verify after body
 
-         if (log.isDebugEnabled())
-            log.debug("Pushing md5-check-stream to verify rspauth from " + hdr_name);
+         if (LOG.isDebugEnabled())
+            LOG.debug("Pushing md5-check-stream to verify rspauth from " + hdr_name);
 
          resp.inp_stream = new MD5InputStream(resp.inp_stream, verifier);
       }
@@ -836,10 +843,12 @@ public class DefaultAuthHandler implements AuthorizationHandler, GlobalConstants
          A1 = extra[DI_A1];
 
       A2 = method + ":" + params[uri].getValue();
+
       if (qop != -1 && params[qop].getValue().equalsIgnoreCase("auth-int"))
       {
-         A2 += ":" + hash;
+         A2 += ":" + hash; //NOSONAR
       }
+
       A2 = MD5.hexDigest(A2);
 
       if (qop == -1)
@@ -890,13 +899,13 @@ public class DefaultAuthHandler implements AuthorizationHandler, GlobalConstants
          A1_hash + ":" + nonce + ":" + req.getMethod() + ":" + (dt == -1 ? "" : hdrs[dt].getValue()) + ":"
             + entity_info + ":" + entity_hash;
 
-      if (log.isDebugEnabled())
+      if (LOG.isDebugEnabled())
       {
-         log.debug("Entity-Info: '" + req.getRequestURI() + ":" + (ct == -1 ? "" : hdrs[ct].getValue()) + ":"
+         LOG.debug("Entity-Info: '" + req.getRequestURI() + ":" + (ct == -1 ? "" : hdrs[ct].getValue()) + ":"
             + entity_body.length + ":" + (ce == -1 ? "" : hdrs[ce].getValue()) + ":"
             + (lm == -1 ? "" : hdrs[lm].getValue()) + ":" + (ex == -1 ? "" : hdrs[ex].getValue()) + "'");
-         log.debug("Entity-Body: '" + entity_hash + "'");
-         log.debug("Entity-Digest: '" + entity_digest + "'");
+         LOG.debug("Entity-Body: '" + entity_hash + "'");
+         LOG.debug("Entity-Digest: '" + entity_digest + "'");
       }
 
       return MD5.hexDigest(entity_digest);
@@ -936,11 +945,19 @@ public class DefaultAuthHandler implements AuthorizationHandler, GlobalConstants
          }
          catch (IOException ioe)
          {
+            if (LOG.isTraceEnabled())
+            {
+               LOG.trace("An exception occurred: " + ioe.getMessage());
+            }
          }
          return data;
       }
-      catch (Throwable t)
+      catch (IOException e)
       {
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + e.getMessage());
+         }
       }
 
       /*
@@ -968,6 +985,10 @@ public class DefaultAuthHandler implements AuthorizationHandler, GlobalConstants
       }
       catch (ArrayIndexOutOfBoundsException aioobe)
       {
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + aioobe.getMessage());
+         }
       }
 
       return data;
@@ -1210,8 +1231,12 @@ class VerifyRspAuth implements HashVerifier, GlobalConstants
 
       // draft-01 was: A2 = resp.getStatusCode() + ":" + uri;
       A2 = ":" + uri;
+
       if (qop.equalsIgnoreCase("auth-int"))
-         A2 += ":" + MD5.toHex(hash);
+      {
+         A2 += ":" + MD5.toHex(hash); //NOSONAR
+      }
+
       A2 = MD5.hexDigest(A2);
 
       hash = MD5.digest(A1 + ":" + nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + A2);
@@ -1302,6 +1327,9 @@ class VerifyDigest implements HashVerifier, GlobalConstants
 
 class SimpleAuthPopup implements AuthorizationPrompter
 {
+
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.commons.SimpleAuthPopup");
+
    private static BasicAuthBox inp = null;
 
    /**
@@ -1450,6 +1478,7 @@ class SimpleAuthPopup implements AuthorizationPrompter
 
       private class Close extends WindowAdapter
       {
+         @Override
          public void windowClosing(WindowEvent we)
          {
             new Cancel().actionPerformed(null);
@@ -1482,11 +1511,15 @@ class SimpleAuthPopup implements AuthorizationPrompter
             // prefill the user field with the username
             try
             {
-               user.setText(System.getProperty("user.name", ""));
+               user.setText(PrivilegedSystemHelper.getProperty("user.name", ""));
                user_focus = false;
             }
             catch (SecurityException se)
             {
+               if (LOG.isTraceEnabled())
+               {
+                  LOG.trace("An exception occurred: " + se.getMessage());
+               }
             }
          }
 
@@ -1526,6 +1559,9 @@ class SimpleAuthPopup implements AuthorizationPrompter
  */
 class SimpleAuthPrompt implements AuthorizationPrompter
 {
+
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.commons.SimpleAuthPrompt");
+
    /**
     * the method called by DefaultAuthHandler.
     * @return the username/password pair
@@ -1536,20 +1572,19 @@ class SimpleAuthPrompt implements AuthorizationPrompter
 
       if (challenge.getScheme().equalsIgnoreCase("SOCKS5"))
       {
-         System.out.println("Enter username and password for SOCKS " + "server on host " + challenge.getHost());
-         System.out.println("Authentication Method: username/password");
+         System.out.println("Enter username and password for SOCKS " + "server on host " + challenge.getHost()); //NOSONAR
+         System.out.println("Authentication Method: username/password"); //NOSONAR
       }
       else
       {
-         System.out.println("Enter username and password for realm `" + challenge.getRealm() + "' on host "
-            + challenge.getHost() + ":" + challenge.getPort());
-         System.out.println("Authentication Scheme: " + challenge.getScheme());
+         System.out.println("Enter username and password for realm `" + challenge.getRealm() + "' on host " + challenge.getHost() + ":" + challenge.getPort()); //NOSONAR
+         System.out.println("Authentication Scheme: " + challenge.getScheme()); //NOSONAR
       }
 
       // get username
 
       BufferedReader inp = new BufferedReader(new InputStreamReader(System.in));
-      System.out.print("Username: ");
+      System.out.print("Username: "); //NOSONAR
       System.out.flush();
       try
       {
@@ -1565,7 +1600,7 @@ class SimpleAuthPrompt implements AuthorizationPrompter
       // get password
 
       echo(false);
-      System.out.print("Password: ");
+      System.out.print("Password: "); //NOSONAR
       System.out.flush();
       try
       {
@@ -1575,7 +1610,7 @@ class SimpleAuthPrompt implements AuthorizationPrompter
       {
          return null;
       }
-      System.out.println();
+      System.out.println(); //NOSONAR
       echo(true);
 
       if (pass == null)
@@ -1591,7 +1626,7 @@ class SimpleAuthPrompt implements AuthorizationPrompter
     */
    private static void echo(boolean on)
    {
-      String os = System.getProperty("os.name");
+      String os = PrivilegedSystemHelper.getProperty("os.name");
       String[] cmd = null;
 
       if (os.equalsIgnoreCase("Windows 95") || os.equalsIgnoreCase("Windows NT"))
@@ -1614,8 +1649,12 @@ class SimpleAuthPrompt implements AuthorizationPrompter
          {
             Runtime.getRuntime().exec(cmd).waitFor();
          }
-         catch (Exception e)
+         catch (Throwable e)
          {
+            if (LOG.isTraceEnabled())
+            {
+               LOG.trace("An exception occurred: " + e.getMessage());
+            }
          }
    }
 
@@ -1624,7 +1663,7 @@ class SimpleAuthPrompt implements AuthorizationPrompter
     */
    static boolean canUseCLPrompt()
    {
-      String os = System.getProperty("os.name");
+      String os = PrivilegedSystemHelper.getProperty("os.name");
 
       return (os.indexOf("Linux") >= 0 || os.indexOf("SunOS") >= 0 || os.indexOf("Solaris") >= 0
          || os.indexOf("BSD") >= 0 || os.indexOf("AIX") >= 0 || os.indexOf("HP-UX") >= 0 || os.indexOf("IRIX") >= 0

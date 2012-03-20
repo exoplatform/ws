@@ -22,9 +22,13 @@ import junit.framework.TestCase;
 
 import org.exoplatform.container.StandaloneContainer;
 import org.exoplatform.services.rest.impl.ApplicationContextImpl;
+import org.exoplatform.services.rest.impl.ApplicationRegistry;
+import org.exoplatform.services.rest.impl.DependencySupplier;
 import org.exoplatform.services.rest.impl.ProviderBinder;
+import org.exoplatform.services.rest.impl.ProvidersRegistry;
 import org.exoplatform.services.rest.impl.RequestHandlerImpl;
 import org.exoplatform.services.rest.impl.ResourceBinder;
+import org.exoplatform.services.rest.tools.ResourceLauncher;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
@@ -41,46 +45,63 @@ public abstract class BaseTest extends TestCase
 
    protected RequestHandlerImpl requestHandler;
 
+   protected ResourceLauncher launcher;
+
+   protected ApplicationRegistry applicationRegistry;
+
+   protected ProvidersRegistry providersRegistry;
+
    public void setUp() throws Exception
    {
-      StandaloneContainer.setConfigurationPath("src/test/resources/conf/standalone/test-configuration.xml");
+      String conf = getClass().getResource("/conf/standalone/test-configuration.xml").toString();
+      //StandaloneContainer.setConfigurationPath("src/test/resources/conf/standalone/test-configuration.xml");
+      StandaloneContainer.setConfigurationURL(conf);
       container = StandaloneContainer.getInstance();
+
+      applicationRegistry = (ApplicationRegistry)container.getComponentInstanceOfType(ApplicationRegistry.class);
       binder = (ResourceBinder)container.getComponentInstanceOfType(ResourceBinder.class);
       requestHandler = (RequestHandlerImpl)container.getComponentInstanceOfType(RequestHandlerImpl.class);
-      // reset providers to be sure it is clean
+      providersRegistry = (ProvidersRegistry)container.getComponentInstanceOfType(ProvidersRegistry.class);
+      DependencySupplier dependencySupplier =
+         (DependencySupplier)container.getComponentInstanceOfType(DependencySupplier.class);
+
+      // reset default providers to be sure it is clean.
       ProviderBinder.setInstance(new ProviderBinder());
       providers = ProviderBinder.getInstance();
-      //    System.out.println("##########################"+providers);
-      ApplicationContextImpl.setCurrent(new ApplicationContextImpl(null, null, providers));
+
       binder.clear();
+
+      ApplicationContextImpl.setCurrent(new ApplicationContextImpl(null, null, providers, dependencySupplier));
+      
+      launcher = new ResourceLauncher(requestHandler);
    }
 
    public void tearDown() throws Exception
    {
    }
 
-   public boolean registry(Object resource) throws Exception
+   public void registry(Object resource) throws Exception
    {
       //    container.registerComponentInstance(resource);
-      return binder.bind(resource);
+      binder.addResource(resource, null);
    }
 
-   public boolean registry(Class<?> resourceClass) throws Exception
+   public void registry(Class<?> resourceClass) throws Exception
    {
       //    container.registerComponentImplementation(resourceClass.getName(), resourceClass);
-      return binder.bind(resourceClass);
+      binder.addResource(resourceClass, null);
    }
 
-   public boolean unregistry(Object resource)
+   public void unregistry(Object resource)
    {
       //    container.unregisterComponentByInstance(resource);
-      return binder.unbind(resource.getClass());
+      binder.removeResource(resource.getClass());
    }
 
-   public boolean unregistry(Class<?> resourceClass)
+   public void unregistry(Class<?> resourceClass)
    {
       //    container.unregisterComponent(resourceClass.getName());
-      return binder.unbind(resourceClass);
+      binder.removeResource(resourceClass);
    }
 
 }

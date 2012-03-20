@@ -1,5 +1,5 @@
 /*
- * @(#)ContentMD5Module.java				0.3-3 06/05/2001
+ * @(#)ContentMD5Module.java             0.3-3 06/05/2001
  *
  *  This file is part of the HTTPClient package
  *  Copyright (C) 1996-2001 Ronald Tschal�r
@@ -50,7 +50,7 @@ import java.io.IOException;
 class ContentMD5Module implements HTTPClientModule
 {
 
-   private static final Log log = ExoLogger.getLogger("exo.ws.commons.ContentMD5Module");
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.commons.ContentMD5Module");
 
    // Constructors
 
@@ -107,12 +107,12 @@ class ContentMD5Module implements HTTPClientModule
       if ((md5_digest == null && !md5_tok) || resp.getHeader("Transfer-Encoding") != null)
          return;
 
-      if (log.isDebugEnabled())
+      if (LOG.isDebugEnabled())
       {
          if (md5_digest != null)
-            log.debug("Received digest: " + md5_digest + " - pushing md5-check-stream");
+            LOG.debug("Received digest: " + md5_digest + " - pushing md5-check-stream");
          else
-            log.debug("Expecting digest in trailer " + " - pushing md5-check-stream");
+            LOG.debug("Expecting digest in trailer " + " - pushing md5-check-stream");
       }
       resp.inp_stream = new MD5InputStream(resp.inp_stream, new VerifyMD5(resp));
    }

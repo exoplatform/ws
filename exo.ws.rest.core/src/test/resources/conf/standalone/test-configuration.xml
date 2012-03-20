@@ -19,8 +19,8 @@
     02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 -->
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.exoplaform.org/xml/ns/kernel_1_0.xsd http://www.exoplaform.org/xml/ns/kernel_1_0.xsd"
-   xmlns="http://www.exoplaform.org/xml/ns/kernel_1_0.xsd">
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.exoplatform.org/xml/ns/kernel_1_2.xsd http://www.exoplatform.org/xml/ns/kernel_1_2.xsd"
+   xmlns="http://www.exoplatform.org/xml/ns/kernel_1_2.xsd">
    <component>
       <key>org.exoplatform.services.log.LogConfigurationInitializer</key>
       <type>org.exoplatform.services.log.LogConfigurationInitializer</type>
@@ -52,7 +52,19 @@
    </component>
 
    <component>
+      <type>org.exoplatform.services.rest.impl.ApplicationRegistry</type>
+   </component>
+   <component>
+      <type>org.exoplatform.services.rest.impl.StartableApplication</type>
+   </component>
+   <component>
+      <type>org.exoplatform.services.rest.impl.ProvidersRegistry</type>
+   </component>
+   <component>
       <type>org.exoplatform.services.rest.impl.RequestHandlerImpl</type>
+   </component>
+   <component>
+      <type>org.exoplatform.services.rest.impl.DependencySupplier</type>
    </component>
    <component>
       <type>org.exoplatform.services.rest.impl.RequestDispatcher</type>
@@ -136,6 +148,19 @@
             <value-param>
                <name>name</name>
                <value>filter class</value>
+            </value-param>
+         </init-params>
+         -->
+      </component-plugin>
+      <component-plugin>
+         <name>ws.rs.exception.mapper</name>
+         <set-method>addPlugin</set-method>
+         <type>org.exoplatform.services.rest.impl.ExceptionMapperComponentPlugin</type>
+         <!--
+         <init-params>
+            <value-param>
+               <name>name</name>
+               <value>mapper name</value>
             </value-param>
          </init-params>
          -->

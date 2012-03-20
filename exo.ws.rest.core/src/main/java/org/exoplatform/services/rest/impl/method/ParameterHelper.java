@@ -18,6 +18,7 @@
  */
 package org.exoplatform.services.rest.impl.method;
 
+import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.services.rest.Property;
 import org.exoplatform.services.rest.method.TypeProducer;
 
@@ -27,6 +28,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -212,7 +215,6 @@ public class ParameterHelper
     * @param annotation parameter annotation
     * @return true it parameter is valid, false otherwise
     */
-   // TODO remove this method
    boolean isValidAnnotatedParameter(Class<?> parameterClass, Type parameterType, Annotation annotation)
    {
       if (parameterClass == List.class || parameterClass == Set.class || parameterClass == SortedSet.class)
@@ -258,14 +260,21 @@ public class ParameterHelper
     *          'valueOf' and single string argument
     * @return valueOf method or null if class has not it
     */
-   static Method getStringValueOfMethod(Class<?> clazz)
+   static Method getStringValueOfMethod(final Class<?> clazz)
    {
       try
       {
-         Method method = clazz.getDeclaredMethod("valueOf", String.class);
+         Method method = SecurityHelper.doPrivilegedExceptionAction(new PrivilegedExceptionAction<Method>()
+         {
+            public Method run() throws Exception
+            {
+               return clazz.getDeclaredMethod("valueOf", String.class);
+            }
+         });
+
          return Modifier.isStatic(method.getModifiers()) ? method : null;
       }
-      catch (Exception e)
+      catch (PrivilegedActionException e)
       {
          return null;
       }
@@ -285,7 +294,11 @@ public class ParameterHelper
       {
          return clazz.getConstructor(String.class);
       }
-      catch (Exception e)
+      catch (SecurityException e)
+      {
+         return null;
+      }
+      catch (NoSuchMethodException e)
       {
          return null;
       }

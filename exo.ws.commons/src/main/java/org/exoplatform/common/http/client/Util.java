@@ -1,5 +1,5 @@
 /*
- * @(#)Util.java					0.3-3 06/05/2001
+ * @(#)Util.java             0.3-3 06/05/2001
  *
  *  This file is part of the HTTPClient package
  *  Copyright (C) 1996-2001 Ronald Tschal�r
@@ -31,6 +31,9 @@
  */
 
 package org.exoplatform.common.http.client;
+
+import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.services.log.Log;
 
 import java.lang.reflect.Array;
 import java.net.URL;
@@ -68,6 +71,8 @@ public class Util
    private static final Object http_format_lock = new Object();
 
    private static final Object http_parse_lock = new Object();
+
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.commons.Util");
 
    static
    {
@@ -840,6 +845,10 @@ public class Util
       }
       catch (java.text.ParseException pe)
       {
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + pe.getMessage());
+         }
       }
       try
       {
@@ -847,6 +856,10 @@ public class Util
       }
       catch (java.text.ParseException pe)
       {
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + pe.getMessage());
+         }
       }
       try
       {

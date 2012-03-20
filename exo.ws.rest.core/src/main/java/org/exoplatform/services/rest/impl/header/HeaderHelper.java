@@ -18,6 +18,9 @@
  */
 package org.exoplatform.services.rest.impl.header;
 
+import org.exoplatform.commons.utils.Tools;
+import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.services.log.Log;
 import org.exoplatform.services.rest.header.QualityValue;
 
 import java.text.ParseException;
@@ -47,6 +50,8 @@ import javax.ws.rs.ext.RuntimeDelegate.HeaderDelegate;
  */
 public final class HeaderHelper
 {
+
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.rest.core.HeaderHelper");
 
    /**
     * Constructor.
@@ -90,14 +95,15 @@ public final class HeaderHelper
 
    /**
     * Comparator for tokens which have quality value.
-    * @see QualityValue 
+    *
+    * @see QualityValue
     */
    public static final Comparator<QualityValue> QUALITY_VALUE_COMPARATOR = new Comparator<QualityValue>()
    {
 
       /**
        * Compare two QualityValue for order.
-       * 
+       *
        * @param o1 first QualityValue to be compared
        * @param o2 second QualityValue to be compared
        * @return result of comparison
@@ -121,6 +127,7 @@ public final class HeaderHelper
 
    /**
     * Accept media type producer.
+    *
     * @see ListHeaderProducer
     */
    private static final ListHeaderProducer<AcceptMediaType> LIST_MEDIA_TYPE_PRODUCER =
@@ -140,7 +147,7 @@ public final class HeaderHelper
 
    /**
     * Create sorted by quality value accepted media type list.
-    * 
+    *
     * @param header source header string
     * @return List of AcceptMediaType
     */
@@ -154,6 +161,7 @@ public final class HeaderHelper
 
    /**
     * Accept language producer.
+    *
     * @see ListHeaderProducer
     */
    private static final ListHeaderProducer<AcceptLanguage> LIST_LANGUAGE_PRODUCER =
@@ -173,7 +181,7 @@ public final class HeaderHelper
 
    /**
     * Create sorted by quality value accepted language list.
-    * 
+    *
     * @param header source header string
     * @return List of AcceptLanguage
     */
@@ -186,8 +194,9 @@ public final class HeaderHelper
    }
 
    /**
-    * Accept token producer. Useful for processing
-    * 'accept-charset' and 'accept-encoding' request headers.
+    * Accept token producer. Useful for processing 'accept-charset' and
+    * 'accept-encoding' request headers.
+    *
     * @see ListHeaderProducer
     */
    private static final ListHeaderProducer<AcceptToken> LIST_TOKEN_PRODUCER = new ListHeaderProducer<AcceptToken>()
@@ -226,7 +235,7 @@ public final class HeaderHelper
 
    /**
     * Create sorted by quality value 'accept-character' list.
-    * 
+    *
     * @param header source header string
     * @return List of accept charset tokens
     */
@@ -240,7 +249,7 @@ public final class HeaderHelper
 
    /**
     * Create sorted by quality value 'accept-encoding' list.
-    * 
+    *
     * @param header source header string
     * @return List of accept encoding tokens
     */
@@ -261,7 +270,7 @@ public final class HeaderHelper
    {
 
       /**
-       * Cookie name. 
+       * Cookie name.
        */
       String name;
 
@@ -322,7 +331,7 @@ public final class HeaderHelper
 
    /**
     * Parse cookie header string and create collection of cookie from it.
-    * 
+    *
     * @param cookie the cookie string.
     * @return collection of Cookie.
     */
@@ -366,7 +375,7 @@ public final class HeaderHelper
          if (name.indexOf('$') == -1)
          {
 
-            // first save previous cookie 
+            // first save previous cookie
             if (temp != null)
                l.add(new Cookie(temp.name, temp.value, temp.path, temp.domain, temp.version));
 
@@ -443,7 +452,7 @@ public final class HeaderHelper
          l.add(new SimpleDateFormat(RFC_1123_DATE_FORMAT, Locale.US));
          l.add(new SimpleDateFormat(RFC_1036_DATE_FORMAT, Locale.US));
          l.add(new SimpleDateFormat(ANSI_C_DATE_FORMAT, Locale.US));
-         TimeZone tz = TimeZone.getTimeZone("GMT");
+         TimeZone tz = Tools.getTimeZone("GMT");
          l.get(0).setTimeZone(tz);
          l.get(1).setTimeZone(tz);
          l.get(2).setTimeZone(tz);
@@ -462,10 +471,10 @@ public final class HeaderHelper
 
    /**
     * Parse date header. Will try to found appropriated format for given date
-    * header. Format can be one of see {@link <a
-    * href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.3.1"
-    * >HTTP/1.1 documentation</a>}.
-    * 
+    * header. Format can be one of see
+    * {@link <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.3.1" >HTTP/1.1 documentation</a>}
+    * .
+    *
     * @param header source date header
     * @return parsed Date
     */
@@ -478,9 +487,12 @@ public final class HeaderHelper
       }
       catch (ParseException e)
       {
-         // ignore all ParseException now 
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + e.getMessage());
+         }
       }
-      // no one format was found 
+      // no one format was found
       throw new IllegalArgumentException("Not found appropriated date format for " + header);
    }
 
@@ -488,7 +500,8 @@ public final class HeaderHelper
 
    /**
     * @param httpHeaders HTTP headers
-    * @return parsed content-length or null if content-length header is not specified
+    * @return parsed content-length or null if content-length header is not
+    *         specified
     */
    public static long getContentLengthLong(MultivaluedMap<String, String> httpHeaders)
    {
@@ -500,7 +513,7 @@ public final class HeaderHelper
    /**
     * Create string representation of Java Object for adding to response. Method
     * use {@link HeaderDelegate#toString()}.
-    * 
+    *
     * @param o HTTP header as Java type.
     * @return string representation of supplied type
     */
@@ -508,14 +521,14 @@ public final class HeaderHelper
    public static String getHeaderAsString(Object o)
    {
       HeaderDelegate hd = RuntimeDelegate.getInstance().createHeaderDelegate(o.getClass());
-      return hd.toString(o);
+      return hd != null ? hd.toString(o) : o.toString();
    }
 
    /**
-    * Convert Collection&lt;String&gt; to single String, where values separated by ','.
-    * Useful for getting source string of HTTP header for next processing quality
-    * value of header tokens.
-    * 
+    * Convert Collection&lt;String&gt; to single String, where values separated
+    * by ','. Useful for getting source string of HTTP header for next
+    * processing quality value of header tokens.
+    *
     * @param collection the source list
     * @return String result
     */
@@ -540,7 +553,7 @@ public final class HeaderHelper
    /**
     * Append string in given string buffer, if string contains quotes or
     * whitespace, then it be escaped.
-    * 
+    *
     * @param sb string buffer
     * @param s string
     */
@@ -564,7 +577,7 @@ public final class HeaderHelper
 
    /**
     * Append string in given string buffer, quotes will be escaped.
-    * 
+    *
     * @param sb string buffer
     * @param s string
     */
@@ -581,7 +594,7 @@ public final class HeaderHelper
 
    /**
     * Remove all whitespace from given string.
-    * 
+    *
     * @param s the source string
     * @return the result string
     */
@@ -597,7 +610,7 @@ public final class HeaderHelper
    /**
     * Add quotes to <code>String</code> if it consists whitespaces, otherwise
     * <code>String</code> will be returned without changes.
-    * 
+    *
     * @param s the source string.
     * @return new string.
     */
@@ -614,7 +627,7 @@ public final class HeaderHelper
    /**
     * Check syntax of quality value and parse it. Quality value must have not
     * more then 5 characters and be not more then 1 .
-    * 
+    *
     * @param qstring string representation of quality value
     * @return quality value
     */
@@ -633,7 +646,7 @@ public final class HeaderHelper
    /**
     * Check is given string token. Token may contains only US-ASCII characters
     * except separators, {@link #SEPARTORS} and controls.
-    * 
+    *
     * @param token the token
     * @return -1 if string has only valid character otherwise index of first
     *         wrong character
@@ -654,7 +667,7 @@ public final class HeaderHelper
     * The cookies parameters can be separated by ';' or ',', try to find first
     * available separator in cookie string. If both not found the string length
     * will be returned.
-    * 
+    *
     * @param cookie the cookie string.
     * @param start index for start searching.
     * @return the index of ',' or ';'.
@@ -683,7 +696,7 @@ public final class HeaderHelper
     * <p>
     * String \"hello \\\"someone\\\"\" will be changed to hello \"someone\"
     * </p>
-    * 
+    *
     * @param token token for processing
     * @return result
     */

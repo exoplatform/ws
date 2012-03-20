@@ -18,6 +18,7 @@
  */
 package org.exoplatform.services.rest.impl;
 
+import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.rest.ApplicationContext;
@@ -28,8 +29,13 @@ import org.exoplatform.services.rest.impl.method.ParameterResolverFactory;
 import org.exoplatform.services.rest.resource.ResourceDescriptorVisitor;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.security.PrivilegedAction;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.List;
 
 import javax.ws.rs.DefaultValue;
@@ -47,36 +53,29 @@ import javax.ws.rs.ext.Provider;
  */
 public class FieldInjectorImpl implements FieldInjector
 {
-
-   /**
-    * Logger.
-    */
+   /** Logger. */
    private static final Log LOG = ExoLogger.getLogger("exo.ws.rest.core.FieldInjectorImpl");
 
-   /**
-    * All annotations including JAX-RS annotation.
-    */
+   /** All annotations including JAX-RS annotation. */
    private final Annotation[] annotations;
 
-   /**
-    * JAX-RS annotation.
-    */
+   /** JAX-RS annotation. */
    private final Annotation annotation;
 
    /**
-    * Default value for this parameter, default value can be used if there is not
-    * found required parameter in request. See {@link javax.ws.rs.DefaultValue}.
+    * Default value for this parameter, default value can be used if there is
+    * not found required parameter in request. See
+    * {@link javax.ws.rs.DefaultValue}.
     */
    private final String defaultValue;
 
-   /**
-    * See {@link javax.ws.rs.Encoded}.
-    */
+   /** See {@link javax.ws.rs.Encoded}. */
    private final boolean encoded;
-
 
    /** See {@link java.lang.reflect.Field} . */
    private final java.lang.reflect.Field jfield;
+
+   private final Method setter;
 
    /**
     * @param resourceClass class that contains field <tt>jfield</tt>
@@ -84,9 +83,9 @@ public class FieldInjectorImpl implements FieldInjector
     */
    public FieldInjectorImpl(Class<?> resourceClass, java.lang.reflect.Field jfield)
    {
-
       this.jfield = jfield;
       this.annotations = jfield.getDeclaredAnnotations();
+      this.setter = getSetter(resourceClass, jfield);
 
       Annotation annotation = null;
       String defaultValue = null;
@@ -117,31 +116,51 @@ public class FieldInjectorImpl implements FieldInjector
                      + annotation.toString() + " and " + a.toString() + " can't be applied to one field.";
                throw new RuntimeException(msg);
             }
-
-            // @Encoded has not sense for Provider. Provider may use only @Context
-            // annotation for fields
+            // @Encoded has not sense for Provider. Provider may use only @Context annotation for fields
          }
          else if (ac == Encoded.class && !provider)
          {
             encoded = true;
-            // @Default has not sense for Provider. Provider may use only @Context
-            // annotation for fields
+            // @Default has not sense for Provider. Provider may use only @Context annotation for fields
          }
          else if (ac == DefaultValue.class && !provider)
          {
             defaultValue = ((DefaultValue)a).value();
          }
-         else
+         /*else
          {
             LOG.warn("Field " + jfield.toString() + " contains unknown or not allowed JAX-RS annotation "
                + a.toString() + ". It will be ignored.");
-         }
+         }*/
       }
 
       this.defaultValue = defaultValue;
       this.annotation = annotation;
       this.encoded = encoded || resourceClass.getAnnotation(Encoded.class) != null;
+   }
 
+   private static Method getSetter(final Class<?> clazz, final java.lang.reflect.Field jfield)
+   {
+      Method setter = null;
+      try
+      {
+         setter = SecurityHelper.doPrivilegedExceptionAction(new PrivilegedExceptionAction<Method>() {
+            public Method run() throws NoSuchMethodException
+            {
+               String name = jfield.getName();
+               String setterName = "set" + Character.toUpperCase(name.charAt(0)) + name.substring(1);
+               return clazz.getMethod(setterName, jfield.getType());
+            }
+         });
+      }
+      catch (PrivilegedActionException e)
+      {
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + e.getMessage());
+         }
+      }
+      return setter;
    }
 
    /**
@@ -210,22 +229,75 @@ public class FieldInjectorImpl implements FieldInjector
          ParameterResolver<?> pr = ParameterResolverFactory.createParameterResolver(annotation);
          try
          {
-            if (!Modifier.isPublic(jfield.getModifiers()))
-               jfield.setAccessible(true);
-
-            jfield.set(resource, pr.resolve(this, context));
+            if (setter != null)
+            {
+               setter.invoke(resource, pr.resolve(this, context));
+            }
+            else
+            {
+               if (!Modifier.isPublic(jfield.getModifiers()))
+               {
+                  SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>() {
+                     public Void run()
+                     {
+                        jfield.setAccessible(true);
+                        return null;
+                     }
+                  });
+               }
+               jfield.set(resource, pr.resolve(this, context));
+            }
          }
-         catch (Throwable e)
+         catch (Exception e)
          {
-
             Class<?> ac = annotation.annotationType();
             if (ac == MatrixParam.class || ac == QueryParam.class || ac == PathParam.class)
+            {
                throw new WebApplicationException(e, Response.status(Response.Status.NOT_FOUND).build());
-
+            }
             throw new WebApplicationException(e, Response.status(Response.Status.BAD_REQUEST).build());
          }
       }
-
+      else
+      {
+         Object tmp = context.getDependencySupplier().getComponent(this);
+         if (tmp != null)
+         {
+            try
+            {
+               if (setter != null)
+               {
+                  setter.invoke(resource, tmp);
+               }
+               else
+               {
+                  if (!Modifier.isPublic(jfield.getModifiers()))
+                  {
+                     SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>() {
+                        public Void run()
+                        {
+                           jfield.setAccessible(true);
+                           return null;
+                        }
+                     });
+                  }
+                  jfield.set(resource, tmp);
+               }
+            }
+            catch (IllegalAccessException e)
+            {
+               throw new WebApplicationException(e, Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
+            }
+            catch (IllegalArgumentException e)
+            {
+               throw new WebApplicationException(e, Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
+            }
+            catch (InvocationTargetException e)
+            {
+               throw new WebApplicationException(e, Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
+            }
+         }
+      }
    }
 
    /**
@@ -243,10 +315,9 @@ public class FieldInjectorImpl implements FieldInjector
    public String toString()
    {
       StringBuffer sb = new StringBuffer("[ FieldInjectorImpl: ");
-      sb.append("annotation: " + getAnnotation()).append("; type: " + getParameterClass()).append(
-         "; generic-type : " + getGenericType()).append("; default-value: " + getDefaultValue()).append(
-         "; encoded: " + isEncoded()).append(" ]");
+      sb.append("annotation: " + getAnnotation()).append("; type: " + getParameterClass())
+         .append("; generic-type : " + getGenericType()).append("; default-value: " + getDefaultValue())
+         .append("; encoded: " + isEncoded()).append(" ]");
       return sb.toString();
    }
-
 }

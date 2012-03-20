@@ -1,5 +1,5 @@
 /*
- * @(#)HTTPConnection.java				0.3-3 06/05/2001
+ * @(#)HTTPConnection.java             0.3-3 06/05/2001
  *
  *  This file is part of the HTTPClient package
  *  Copyright (C) 1996-2001 Ronald Tschal�r
@@ -32,6 +32,7 @@
 
 package org.exoplatform.common.http.client;
 
+import org.exoplatform.commons.utils.PrivilegedSystemHelper;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 
@@ -303,7 +304,7 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
    /** controls whether modules are allowed to interact with user */
    private boolean allowUI;
 
-   private static final Log log = ExoLogger.getLogger("exo.ws.commons.HTTPConnection");
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.commons.HTTPConnection");
 
    static
    {
@@ -315,13 +316,13 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
       try
       // JDK 1.1 naming
       {
-         String host = System.getProperty("http.proxyHost");
+         String host = PrivilegedSystemHelper.getProperty("http.proxyHost");
          if (host == null)
             throw new Exception(); // try JDK 1.0.x naming
          int port = Integer.getInteger("http.proxyPort", -1).intValue();
 
-         if (log.isDebugEnabled())
-            log.debug("using proxy " + host + ":" + port);
+         if (LOG.isDebugEnabled())
+            LOG.debug("using proxy " + host + ":" + port);
 
          setProxyServer(host, port);
       }
@@ -332,11 +333,11 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
          {
             if (Boolean.getBoolean("proxySet"))
             {
-               String host = System.getProperty("proxyHost");
+               String host = PrivilegedSystemHelper.getProperty("proxyHost");
                int port = Integer.getInteger("proxyPort", -1).intValue();
 
-               if (log.isDebugEnabled())
-                  log.debug("using proxy " + host + ":" + port);
+               if (LOG.isDebugEnabled())
+                  LOG.debug("using proxy " + host + ":" + port);
 
                setProxyServer(host, port);
             }
@@ -352,15 +353,19 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
        */
       try
       {
-         String hosts = System.getProperty("HTTPClient.nonProxyHosts");
+         String hosts = PrivilegedSystemHelper.getProperty("HTTPClient.nonProxyHosts");
          if (hosts == null)
-            hosts = System.getProperty("http.nonProxyHosts");
+            hosts = PrivilegedSystemHelper.getProperty("http.nonProxyHosts");
 
          String[] list = Util.splitProperty(hosts);
          dontProxyFor(list);
       }
       catch (Exception e)
       {
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + e.getMessage());
+         }
       }
 
       /*
@@ -371,14 +376,14 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
        */
       try
       {
-         String host = System.getProperty("HTTPClient.socksHost");
+         String host = PrivilegedSystemHelper.getProperty("HTTPClient.socksHost");
          if (host != null && host.length() > 0)
          {
             int port = Integer.getInteger("HTTPClient.socksPort", -1).intValue();
             int version = Integer.getInteger("HTTPClient.socksVersion", -1).intValue();
 
-            if (log.isDebugEnabled())
-               log.debug("using SOCKS " + host + ":" + port);
+            if (LOG.isDebugEnabled())
+               LOG.debug("using SOCKS " + host + ":" + port);
 
             if (version == -1)
                setSocksServer(host, port);
@@ -414,7 +419,7 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
       boolean in_applet = false;
       try
       {
-         modules = System.getProperty("HTTPClient.Modules", modules);
+         modules = PrivilegedSystemHelper.getProperty("HTTPClient.Modules", modules);
       }
       catch (SecurityException se)
       {
@@ -430,8 +435,8 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
             String mname = list[idx];
             DefaultModuleList.addElement(Class.forName(mname));
 
-            if (log.isDebugEnabled())
-               log.debug("added module " + list[idx]);
+            if (LOG.isDebugEnabled())
+               LOG.debug("added module " + list[idx]);
 
          }
          catch (ClassNotFoundException cnfe)
@@ -456,14 +461,17 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
          neverPipeline = Boolean.getBoolean("HTTPClient.disable_pipelining");
          if (neverPipeline)
          {
-            if (log.isDebugEnabled())
-               log.debug("disabling pipelining");
+            if (LOG.isDebugEnabled())
+               LOG.debug("disabling pipelining");
 
          }
       }
       catch (Exception e)
       {
-         // nothing to do
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + e.getMessage());
+         }
       }
 
       /*
@@ -474,14 +482,17 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
          noKeepAlives = Boolean.getBoolean("HTTPClient.disableKeepAlives");
          if (noKeepAlives)
          {
-            if (log.isDebugEnabled())
-               log.debug("disabling keep-alives");
+            if (LOG.isDebugEnabled())
+               LOG.debug("disabling keep-alives");
 
          }
       }
       catch (Exception e)
       {
-         // notning to do
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + e.getMessage());
+         }
       }
 
       /*
@@ -492,13 +503,17 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
          force_1_0 = Boolean.getBoolean("HTTPClient.forceHTTP_1.0");
          if (force_1_0)
          {
-            if (log.isDebugEnabled())
-               log.debug("forcing HTTP/1.0 requests");
+            if (LOG.isDebugEnabled())
+               LOG.debug("forcing HTTP/1.0 requests");
 
          }
       }
       catch (Exception e)
       {
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + e.getMessage());
+         }
       }
 
       /*
@@ -509,13 +524,17 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
          no_chunked = Boolean.getBoolean("HTTPClient.dontChunkRequests");
          if (no_chunked)
          {
-            if (log.isDebugEnabled())
-               log.debug("never chunking requests");
+            if (LOG.isDebugEnabled())
+               LOG.debug("never chunking requests");
 
          }
       }
       catch (Exception e)
       {
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + e.getMessage());
+         }
       }
 
       /*
@@ -523,18 +542,22 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
        */
       try
       {
-         if (System.getProperty("os.name").indexOf("Windows") >= 0
-            && System.getProperty("java.version").startsWith("1.1"))
+         if (PrivilegedSystemHelper.getProperty("os.name").indexOf("Windows") >= 0
+            && PrivilegedSystemHelper.getProperty("java.version").startsWith("1.1"))
             haveMSLargeWritesBug = true;
          if (haveMSLargeWritesBug)
          {
-            if (log.isDebugEnabled())
-               log.debug("splitting large writes into 20K chunks (M$ bug)");
+            if (LOG.isDebugEnabled())
+               LOG.debug("splitting large writes into 20K chunks (M$ bug)");
 
          }
       }
       catch (Exception e)
       {
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + e.getMessage());
+         }
       }
 
       /*
@@ -548,13 +571,17 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
          deferStreamed = Boolean.getBoolean("HTTPClient.deferStreamed");
          if (deferStreamed)
          {
-            if (log.isDebugEnabled())
-               log.debug("enabling defered handling of responses to streamed requests");
+            if (LOG.isDebugEnabled())
+               LOG.debug("enabling defered handling of responses to streamed requests");
 
          }
       }
       catch (Exception e)
       {
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + e.getMessage());
+         }
       }
    }
 
@@ -788,11 +815,16 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
     */
    public HTTPResponse Head(String file, NVPair[] form_data, NVPair[] headers) throws IOException, ModuleException
    {
-      String File = stripRef(file), query = Codecs.nv2query(form_data);
-      if (query != null && query.length() > 0)
-         File += "?" + query;
+      String query = Codecs.nv2query(form_data);
+      StringBuilder resource = new StringBuilder(stripRef(file));
 
-      return setupRequest("HEAD", File, headers, null, null);
+      if (query != null && query.length() > 0)
+      {
+         resource.append("?");
+         resource.append(query);
+      }
+
+      return setupRequest("HEAD", resource.toString(), headers, null, null);
    }
 
    /**
@@ -825,11 +857,15 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
     */
    public HTTPResponse Head(String file, String query, NVPair[] headers) throws IOException, ModuleException
    {
-      String File = stripRef(file);
-      if (query != null && query.length() > 0)
-         File += "?" + Codecs.URLEncode(query);
+      StringBuilder resource = new StringBuilder(stripRef(file));
 
-      return setupRequest("HEAD", File, headers, null, null);
+      if (query != null && query.length() > 0)
+      {
+         resource.append("?");
+         resource.append(Codecs.URLEncode(query));
+      }
+
+      return setupRequest("HEAD", resource.toString(), headers, null, null);
    }
 
    /**
@@ -875,11 +911,16 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
     */
    public HTTPResponse Get(String file, NVPair[] form_data, NVPair[] headers) throws IOException, ModuleException
    {
-      String File = stripRef(file), query = Codecs.nv2query(form_data);
-      if (query != null && query.length() > 0)
-         File += "?" + query;
+      String query = Codecs.nv2query(form_data);
+      StringBuilder resource = new StringBuilder(stripRef(file));
 
-      return setupRequest("GET", File, headers, null, null);
+      if (query != null && query.length() > 0)
+      {
+         resource.append("?");
+         resource.append(query);
+      }
+
+      return setupRequest("GET", resource.toString(), headers, null, null);
    }
 
    /**
@@ -912,11 +953,15 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
    @Deprecated
    public HTTPResponse Get(String file, String query, NVPair[] headers) throws IOException, ModuleException
    {
-      String File = stripRef(file);
-      if (query != null && query.length() > 0)
-         File += "?" + Codecs.URLEncode(query);
+      StringBuilder resource = new StringBuilder(stripRef(file));
 
-      return setupRequest("GET", File, headers, null, null);
+      if (query != null && query.length() > 0)
+      {
+         resource.append("?");
+         resource.append(Codecs.URLEncode(query));
+      }
+
+      return setupRequest("GET", resource.toString(), headers, null, null);
    }
 
    /**
@@ -1459,7 +1504,7 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
       }
       catch (XMLStreamException e)
       {
-         e.printStackTrace();
+         LOG.error(e.getLocalizedMessage(), e);
          throw new IOException("Can't write XML data to output stream.");
       }
       return response;
@@ -1581,7 +1626,7 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
       }
       catch (XMLStreamException e)
       {
-         e.printStackTrace();
+         LOG.error(e.getLocalizedMessage(), e);
          throw new IOException("Can't write XML data to output stream.");
       }
       return response;
@@ -1638,7 +1683,7 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
       }
       catch (XMLStreamException e)
       {
-         e.printStackTrace();
+         LOG.error(e.getLocalizedMessage(), e);
          throw new IOException("Can't write XML request.");
       }
       finally
@@ -1800,7 +1845,7 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
    {
       synchronized (DefaultHeaders)
       {
-         return (NVPair[])DefaultHeaders.clone();
+         return DefaultHeaders.clone();
       }
    }
 
@@ -1911,6 +1956,10 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
          }
          catch (ClassNotFoundException cnfe)
          {
+            if (LOG.isTraceEnabled())
+            {
+               LOG.trace("An exception occurred: " + cnfe.getMessage());
+            }
          }
       }
    }
@@ -2164,9 +2213,11 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
             list.insertElementAt(module, pos);
       }
 
-      if (log.isDebugEnabled())
-         log.debug("Added module " + module.getName() + " to " + ((list == DefaultModuleList) ? "default " : "")
+      if (LOG.isDebugEnabled())
+      {
+         LOG.debug("Added module " + module.getName() + " to " + ((list == DefaultModuleList) ? "default " : "") //NOSONAR
             + "list");
+      }
 
       return true;
    }
@@ -2179,10 +2230,11 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
       boolean removed = list.removeElement(module);
       if (removed)
       {
-         if (log.isDebugEnabled())
-            log.debug("Removed module " + module.getName() + " from " + ((list == DefaultModuleList) ? "default " : "")
+         if (LOG.isDebugEnabled())
+         {
+            LOG.debug("Removed module " + module.getName() + " from " + ((list == DefaultModuleList) ? "default " : "") //NOSONAR
                + "list");
-
+         }
       }
 
       return removed;
@@ -2496,7 +2548,10 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
          }
          catch (ParseException pe)
          {
-            // ignore it
+            if (LOG.isTraceEnabled())
+            {
+               LOG.trace("An exception occurred: " + pe.getMessage());
+            }
          }
       }
    }
@@ -2985,26 +3040,24 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
 
       if (early_stall != null)
       {
-         try
-         {
-            if (log.isDebugEnabled())
-               log.debug("Early-stalling Request: " + req.getMethod() + " " + req.getRequestURI());
+         if (LOG.isDebugEnabled())
+            LOG.debug("Early-stalling Request: " + req.getMethod() + " " + req.getRequestURI());
 
-            synchronized (early_stall)
-            {
-               // wait till the response is received
-               try
-               {
-                  early_stall.getVersion();
-               }
-               catch (IOException ioe)
-               {
-               }
-               early_stall = null;
-            }
-         }
-         catch (NullPointerException npe)
+         synchronized (early_stall)
          {
+            // wait till the response is received
+            try
+            {
+               early_stall.getVersion();
+            }
+            catch (IOException ioe)
+            {
+               if (LOG.isTraceEnabled())
+               {
+                  LOG.trace("An exception occurred: " + ioe.getMessage());
+               }
+            }
+            early_stall = null;
          }
       }
 
@@ -3036,8 +3089,8 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
          {
             if (input_demux != null || keepAliveUnknown)
             {
-               if (log.isDebugEnabled())
-                  log.debug("Stalling Request: " + req.getMethod() + " " + req.getRequestURI());
+               if (LOG.isDebugEnabled())
+                  LOG.debug("Stalling Request: " + req.getMethod() + " " + req.getRequestURI());
 
                try
                // wait till the response is received
@@ -3048,6 +3101,10 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
                }
                catch (IOException ioe)
                {
+                  if (LOG.isTraceEnabled())
+                  {
+                     LOG.trace("An exception occurred: " + ioe.getMessage());
+                  }
                }
             }
 
@@ -3064,8 +3121,8 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
          if ((req.getMethod().equals("POST") || req.dont_pipeline) && prev_resp != null && input_demux != null)
          {
 
-            if (log.isDebugEnabled())
-               log.debug("Stalling Request: " + req.getMethod() + " " + req.getRequestURI());
+            if (LOG.isDebugEnabled())
+               LOG.debug("Stalling Request: " + req.getMethod() + " " + req.getRequestURI());
 
             try
             // wait till the response is received
@@ -3074,6 +3131,10 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
             }
             catch (IOException ioe)
             {
+               if (LOG.isTraceEnabled())
+               {
+                  LOG.trace("An exception occurred: " + ioe.getMessage());
+               }
             }
          }
 
@@ -3142,8 +3203,8 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
                if (req.aborted)
                   throw new IOException("Request aborted by user");
 
-               if (log.isDebugEnabled())
-                  log.debug("Sending Request");
+               if (LOG.isDebugEnabled())
+                  LOG.debug("Sending Request");
 
                // Send headers
 
@@ -3172,6 +3233,10 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
                }
                catch (InterruptedIOException iioe)
                {
+                  if (LOG.isTraceEnabled())
+                  {
+                     LOG.trace("An exception occurred: " + iioe.getMessage());
+                  }
                }
                finally
                {
@@ -3214,28 +3279,62 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
                }
 
                if (req.getStream() != null)
+               {
                   req.getStream().goAhead(req, sock_out, 0);
+               }
                else
+               {
                   sock_out.flush();
+               }
 
                // get a new response.
                // Note: this does not do a read on the socket.
 
                if (resp == null)
+               {
                   resp = new Response(req, (Proxy_Host != null && Protocol != HTTPS), input_demux);
+               }
+            }
+            catch (UnknownHostException e)
+            {
+               LOG.error("Send request error", e);
+
+               closeDemux(e, true);
+
+               throw e;
+            }
+            catch (ConnectException e)
+            {
+               LOG.error("Send request error", e);
+
+               closeDemux(e, true);
+
+               throw e;
+            }
+            catch (NoRouteToHostException e)
+            {
+               LOG.error("Send request error", e);
+
+               closeDemux(e, true);
+
+               throw e;
+            }
+            catch (InterruptedIOException e)
+            {
+               LOG.error("Send request error", e);
+
+               closeDemux(e, true);
+
+               throw e;
             }
             catch (IOException ioe)
             {
-
-               log.error("Send request error", ioe);
-
-               closeDemux(ioe, true);
-
-               if (try_count == 0 || ioe instanceof UnknownHostException || ioe instanceof ConnectException
-                  || ioe instanceof NoRouteToHostException || ioe instanceof InterruptedIOException || req.aborted)
+               if (try_count == 0 || req.aborted)
+               {
                   throw ioe;
+               }
 
-               log.info("Retrying request");
+               LOG.info("Retrying request");
                continue;
             }
 
@@ -3256,8 +3355,8 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
 
          if (keepAliveReqMax != -1)
 
-            if (log.isDebugEnabled())
-               log.debug("Number of requests left: " + keepAliveReqLeft);
+            if (LOG.isDebugEnabled())
+               LOG.debug("Number of requests left: " + keepAliveReqLeft);
 
          /*
           * We don't pipeline the first request, as we need some info about the
@@ -3303,8 +3402,8 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
          }
 
          // Looks like were finally done
-         if (log.isDebugEnabled())
-            log.debug("Request sent");
+         if (LOG.isDebugEnabled())
+            LOG.debug("Request sent");
       }
 
       return resp;
@@ -3335,8 +3434,8 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
          actual_port = Port;
       }
 
-      if (log.isDebugEnabled())
-         log.debug("Creating Socket: " + actual_host + ":" + actual_port);
+      if (LOG.isDebugEnabled())
+         LOG.debug("Creating Socket: " + actual_host + ":" + actual_port);
 
       if (con_timeout == 0) // normal connection establishment
       {
@@ -3370,7 +3469,7 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
          con.start();
          try
          {
-            con.join((long)con_timeout);
+            con.join(con_timeout);
          }
          catch (InterruptedException ie)
          {
@@ -3433,8 +3532,8 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
          hdr_buf.reset();
          assembleHeaders(connect, hdr_buf);
 
-         if (log.isDebugEnabled())
-            log.debug("Sending SSL-Tunneling Subrequest");
+         if (LOG.isDebugEnabled())
+            LOG.debug("Sending SSL-Tunneling Subrequest");
 
          // send CONNECT
 
@@ -3456,6 +3555,10 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
          }
          catch (IOException ioe)
          {
+            if (LOG.isTraceEnabled())
+            {
+               LOG.trace("An exception occurred: " + ioe.getMessage());
+            }
          }
          try
          {
@@ -3463,6 +3566,10 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
          }
          catch (IOException ioe)
          {
+            if (LOG.isTraceEnabled())
+            {
+               LOG.trace("An exception occurred: " + ioe.getMessage());
+            }
          }
 
          // handle response
@@ -3616,7 +3723,9 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
          try
          {
             if (!Util.hasToken(co_hdr, "TE"))
-               co_hdr += ", TE";
+            {
+               co_hdr += ", TE"; //NOSONAR
+            }
          }
          catch (ParseException pe)
          {
@@ -3624,10 +3733,14 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
          }
       }
       else
+      {
          co_hdr = "TE";
+      }
 
       if (ug_idx != -1)
-         co_hdr += ", Upgrade";
+      {
+         co_hdr += ", Upgrade"; //NOSONAR
+      }
 
       if (co_hdr != null)
       {
@@ -3785,13 +3898,15 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
       try
       {
          if (ServerProtocolVersion >= HTTP_1_1
-            || ((((Proxy_Host == null || Protocol == HTTPS) && (con = resp.getHeader("Connection")) != null) || ((Proxy_Host != null && Protocol != HTTPS) && (con =
-               resp.getHeader("Proxy-Connection")) != null)) && Util.hasToken(con, "keep-alive")))
+            || ((((Proxy_Host == null || Protocol == HTTPS) 
+                     && (con = resp.getHeader("Connection")) != null) || ((Proxy_Host != null && Protocol != HTTPS) 
+                     && (con = resp.getHeader("Proxy-Connection")) != null)) 
+                     && Util.hasToken(con, "keep-alive")))
          {
             doesKeepAlive = true;
             keepAliveUnknown = false;
-            if (log.isDebugEnabled())
-               log.debug("Keep-Alive enabled");
+            if (LOG.isDebugEnabled())
+               LOG.debug("Keep-Alive enabled");
 
          }
          else if (resp.getStatusCode() < 400)
@@ -3807,19 +3922,31 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
                keepAliveReqMax = Integer.parseInt(max.getValue());
                keepAliveReqLeft = keepAliveReqMax;
 
-               if (log.isDebugEnabled())
-                  log.debug("Max Keep-Alive requests: " + keepAliveReqMax);
+               if (LOG.isDebugEnabled())
+                  LOG.debug("Max Keep-Alive requests: " + keepAliveReqMax);
             }
          }
       }
       catch (ParseException pe)
       {
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + pe.getMessage());
+         }
       }
       catch (NumberFormatException nfe)
       {
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + nfe.getMessage());
+         }
       }
       catch (ClassCastException cce)
       {
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + cce.getMessage());
+         }
       }
    }
 
@@ -3855,6 +3982,7 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
     * Generates a string of the form protocol://host.domain:port .
     * @return the string
     */
+   @Override
    public String toString()
    {
       return getProtocol() + "://" + getHost() + (getPort() != URI.defaultPort(getProtocol()) ? ":" + getPort() : "");
@@ -3883,6 +4011,10 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
          }
          catch (SecurityException se)
          {
+            if (LOG.isTraceEnabled())
+            {
+               LOG.trace("An exception occurred: " + se.getMessage());
+            }
          } // Oh well...
 
          actual_host = host;
@@ -3894,6 +4026,7 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
          close = false;
       }
 
+      @Override
       public void run()
       {
          try
@@ -3935,6 +4068,10 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
             }
             catch (IOException ioe)
             {
+               if (LOG.isTraceEnabled())
+               {
+                  LOG.trace("An exception occurred: " + ioe.getMessage());
+               }
             }
             sock = null;
          }
@@ -3970,6 +4107,7 @@ public class HTTPConnection implements GlobalConstants, HTTPClientModuleConstant
          super(os);
       }
 
+      @Override
       public void write(byte[] b, int off, int len) throws IOException
       {
          while (len > CHUNK_SIZE)

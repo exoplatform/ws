@@ -18,11 +18,14 @@
  */
 package org.exoplatform.services.rest.impl.provider;
 
+import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.component.ComponentPlugin;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.rest.impl.header.MediaTypeHelper;
 
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -36,7 +39,7 @@ import javax.xml.bind.JAXBException;
 
 /**
  * Provide cache for {@link JAXBContext}.
- * 
+ *
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
  * @version $Id: $
  */
@@ -68,17 +71,43 @@ public class JAXBContextResolver implements ContextResolver<JAXBContextResolver>
    /**
     * Return JAXBContext according to supplied type. If no one context found then
     * try create new context and save it in cache.
-    * 
+    *
     * @param classes classes to be bound
     * @return JAXBContext
     * @throws JAXBException if JAXBContext creation failed
     */
-   public JAXBContext getJAXBContext(Class<?> clazz) throws JAXBException
+   public JAXBContext getJAXBContext(final Class<?> clazz) throws JAXBException
    {
       JAXBContext jaxbctx = jaxbContexts.get(clazz);
       if (jaxbctx == null)
       {
-         jaxbctx = JAXBContext.newInstance(clazz);
+         try
+         {
+            jaxbctx = SecurityHelper.doPrivilegedExceptionAction(new PrivilegedExceptionAction<JAXBContext>()
+            {
+               public JAXBContext run() throws Exception
+               {
+                  return JAXBContext.newInstance(clazz);
+               }
+            });
+         }
+         catch (PrivilegedActionException pae)
+         {
+            Throwable cause = pae.getCause();
+            if (cause instanceof JAXBException)
+            {
+               throw (JAXBException)cause;
+            }
+            else if (cause instanceof RuntimeException)
+            {
+               throw (RuntimeException)cause;
+            }
+            else
+            {
+               throw new RuntimeException(cause);
+            }
+         }
+
          jaxbContexts.put(clazz, jaxbctx);
       }
       return jaxbctx;
@@ -86,15 +115,43 @@ public class JAXBContextResolver implements ContextResolver<JAXBContextResolver>
 
    /**
     * Create and add in cache JAXBContext for supplied set of classes.
-    * 
+    *
     * @param classes set of java classes to be bound
     * @return JAXBContext
     * @throws JAXBException if JAXBContext for supplied classes can't be created
     *           in any reasons
     */
-   public JAXBContext createJAXBContext(Class<?> clazz) throws JAXBException
+   public JAXBContext createJAXBContext(final Class<?> clazz) throws JAXBException
    {
-      JAXBContext jaxbctx = JAXBContext.newInstance(clazz);
+      JAXBContext jaxbctx;
+
+      try
+      {
+         jaxbctx = SecurityHelper.doPrivilegedExceptionAction(new PrivilegedExceptionAction<JAXBContext>()
+         {
+            public JAXBContext run() throws Exception
+            {
+               return JAXBContext.newInstance(clazz);
+            }
+         });
+      }
+      catch (PrivilegedActionException pae)
+      {
+         Throwable cause = pae.getCause();
+         if (cause instanceof JAXBException)
+         {
+            throw (JAXBException)cause;
+         }
+         else if (cause instanceof RuntimeException)
+         {
+            throw (RuntimeException)cause;
+         }
+         else
+         {
+            throw new RuntimeException(cause);
+         }
+      }
+
       addJAXBContext(jaxbctx, clazz);
       return jaxbctx;
    }
@@ -102,7 +159,7 @@ public class JAXBContextResolver implements ContextResolver<JAXBContextResolver>
    /**
     * Add prepared JAXBContext that will be mapped to set of class. In this case
     * this class works as cache for JAXBContexts.
-    * 
+    *
     * @param jaxbctx JAXBContext
     * @param classes set of java classes to be bound
     */
@@ -124,6 +181,7 @@ public class JAXBContextResolver implements ContextResolver<JAXBContextResolver>
             try
             {
                createJAXBContext(c);
+               //System.out.printf("\nContext for class: {%s}\n\n ", c);
             }
             catch (JAXBException e)
             {

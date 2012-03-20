@@ -18,6 +18,8 @@
  */
 package org.exoplatform.services.rest.impl;
 
+import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.services.log.Log;
 import org.exoplatform.services.rest.GenericContainerRequest;
 import org.exoplatform.services.rest.impl.header.AcceptLanguage;
 import org.exoplatform.services.rest.impl.header.AcceptMediaType;
@@ -41,8 +43,8 @@ import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Variant;
 import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Variant;
 
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
@@ -107,6 +109,8 @@ public class ContainerRequest implements GenericContainerRequest
     * Base URI, e.g. servlet path.  
     */
    private URI baseUri;
+
+   private static final Log LOG = ExoLogger.getLogger("exo.ws.rest.core.ContainerRequest");
 
    /**
     * Constructs new instance of ContainerRequest.
@@ -355,8 +359,9 @@ public class ContainerRequest implements GenericContainerRequest
    public Variant selectVariant(List<Variant> variants)
    {
       if (variants == null || variants.isEmpty())
+      {
          throw new IllegalArgumentException("The list of variants is null or empty");
-      // TODO constructs and set 'Vary' header in response
+      }
       // Response will be set in RequestDispatcher if set Response
       // now then it will be any way rewrite in RequestDispatcher.
       return VariantsHandler.handleVariants(this, variants);
@@ -432,9 +437,10 @@ public class ContainerRequest implements GenericContainerRequest
     */
    public Locale getLanguage()
    {
-      // TODO Not efficient implementation, header map can be checked few times 
       if (contentLanguage == null && httpHeaders.getFirst(CONTENT_LANGUAGE) != null)
+      {
          contentLanguage = Language.getLocale(httpHeaders.getFirst(CONTENT_LANGUAGE));
+      }
 
       return contentLanguage;
    }
@@ -444,9 +450,10 @@ public class ContainerRequest implements GenericContainerRequest
     */
    public MediaType getMediaType()
    {
-      // TODO Not efficient implementation, if header map can be checked few times 
       if (contentType == null && httpHeaders.getFirst(CONTENT_TYPE) != null)
+      {
          contentType = MediaType.valueOf(httpHeaders.getFirst(CONTENT_TYPE));
+      }
 
       return contentType;
    }
@@ -488,10 +495,11 @@ public class ContainerRequest implements GenericContainerRequest
 
       EntityTag otherEtag = EntityTag.valueOf(ifMatch);
 
-      // TODO check is status 412 valid if one of tag is weak
       if ((etag.isWeak() || otherEtag.isWeak()) // one of tag is weak
          || (!"*".equals(otherEtag.getValue()) && !etag.getValue().equals(otherEtag.getValue())))
+      {
          return Response.status(Response.Status.PRECONDITION_FAILED);
+      }
 
       // if tags are not matched then do as tag 'if-match' is absent
       return null;
@@ -564,7 +572,10 @@ public class ContainerRequest implements GenericContainerRequest
       }
       catch (IllegalArgumentException e)
       {
-         // If the specified date is invalid, the header is ignored.
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + e.getMessage());
+         }
       }
 
       return null;
@@ -583,17 +594,23 @@ public class ContainerRequest implements GenericContainerRequest
       String ifModified = getRequestHeaders().getFirst(IF_MODIFIED_SINCE);
 
       if (ifModified == null)
+      {
          return null;
+      }
       try
       {
          long modifiedSince = HeaderHelper.parseDateHeader(ifModified).getTime();
          if (lastModified < modifiedSince)
+         {
             return Response.notModified();
-
+         }
       }
       catch (IllegalArgumentException e)
       {
-         // If the specified date is invalid, the header is ignored.
+         if (LOG.isTraceEnabled())
+         {
+            LOG.trace("An exception occurred: " + e.getMessage());
+         }
       }
 
       return null;

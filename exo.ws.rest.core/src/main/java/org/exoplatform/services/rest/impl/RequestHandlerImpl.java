@@ -18,27 +18,14 @@
  */
 package org.exoplatform.services.rest.impl;
 
-import java.io.File;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.ext.ExceptionMapper;
-
+import org.exoplatform.commons.utils.PrivilegedFileHelper;
+import org.exoplatform.commons.utils.PrivilegedSystemHelper;
+import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.component.ComponentPlugin;
 import org.exoplatform.container.xml.InitParams;
 import org.exoplatform.container.xml.ValueParam;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
-import org.exoplatform.services.rest.ApplicationContext;
 import org.exoplatform.services.rest.ExtHttpHeaders;
 import org.exoplatform.services.rest.FilterDescriptor;
 import org.exoplatform.services.rest.GenericContainerRequest;
@@ -53,6 +40,22 @@ import org.exoplatform.services.rest.method.MethodInvokerFilter;
 import org.exoplatform.services.rest.provider.EntityProvider;
 import org.picocontainer.Startable;
 
+import java.io.File;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.security.PrivilegedAction;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.StreamingOutput;
+import javax.ws.rs.ext.ExceptionMapper;
+
 /**
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
  * @version $Id: $
@@ -66,8 +69,9 @@ public final class RequestHandlerImpl implements RequestHandler, Startable
    private static final Log LOG = ExoLogger.getLogger("exo.ws.rest.core.RequestHandlerImpl");
 
    /**
-    * Application properties. Properties from this map will be copied to ApplicationContext
-    * and may be accessible via method {@link ApplicationContextImpl#getProperties()}. 
+    * Application properties. Properties from this map will be copied to
+    * ApplicationContext and may be accessible via method
+    * {@link ApplicationContextImpl#getProperties()}.
     */
    private static final Map<String, String> properties = new HashMap<String, String>();
 
@@ -75,6 +79,8 @@ public final class RequestHandlerImpl implements RequestHandler, Startable
     * See {@link RequestDispatcher}.
     */
    private final RequestDispatcher dispatcher;
+
+   private final DependencySupplier dependencySupplier;
 
    public static final String getProperty(String name)
    {
@@ -85,7 +91,22 @@ public final class RequestHandlerImpl implements RequestHandler, Startable
    {
       if (value == null)
          properties.remove(name);
-      properties.put(name, value);
+      else
+         properties.put(name, value);
+   }
+
+   public RequestHandlerImpl(RequestDispatcher dispatcher, DependencySupplier dependencySupplier, InitParams params)
+   {
+      this.dispatcher = dispatcher;
+      this.dependencySupplier = dependencySupplier;
+      if (params != null)
+      {
+         for (Iterator<ValueParam> i = params.getValueParamIterator(); i.hasNext();)
+         {
+            ValueParam vp = i.next();
+            properties.put(vp.getName(), vp.getValue());
+         }
+      }
    }
 
    /**
@@ -96,17 +117,7 @@ public final class RequestHandlerImpl implements RequestHandler, Startable
     */
    public RequestHandlerImpl(RequestDispatcher dispatcher, InitParams params)
    {
-      if (params != null)
-      {
-         for (Iterator<ValueParam> i = params.getValueParamIterator(); i.hasNext();)
-         {
-            ValueParam vp = i.next();
-            properties.put(vp.getName(), vp.getValue());
-         }
-      }
-
-      this.dispatcher = dispatcher;
-
+      this(dispatcher, new DependencySupplier(), params);
    }
 
    // RequestHandler
@@ -114,17 +125,19 @@ public final class RequestHandlerImpl implements RequestHandler, Startable
    /**
     * {@inheritDoc}
     */
-   @SuppressWarnings("unchecked")
+   @SuppressWarnings({"unchecked", "rawtypes"})
    public void handleRequest(GenericContainerRequest request, GenericContainerResponse response) throws Exception
    {
       try
       {
-         ApplicationContext context = new ApplicationContextImpl(request, response, ProviderBinder.getInstance());
+         ProviderBinder defaultProviders = ProviderBinder.getInstance();
+         ApplicationContextImpl context =
+            new ApplicationContextImpl(request, response, defaultProviders, dependencySupplier);
          context.getProperties().putAll(properties);
          ApplicationContextImpl.setCurrent(context);
 
-         for (ObjectFactory<FilterDescriptor> factory : ProviderBinder.getInstance().getRequestFilters(
-            context.getPath()))
+         // Apply default filters only.
+         for (ObjectFactory<FilterDescriptor> factory : defaultProviders.getRequestFilters(context.getPath()))
          {
             RequestFilter f = (RequestFilter)factory.getInstance(context);
             f.doFilter(request);
@@ -132,7 +145,6 @@ public final class RequestHandlerImpl implements RequestHandler, Startable
 
          try
          {
-
             dispatcher.dispatch(request, response);
             if (response.getHttpHeaders().getFirst(ExtHttpHeaders.JAXRS_BODY_PROVIDED) == null)
             {
@@ -142,102 +154,92 @@ public final class RequestHandlerImpl implements RequestHandler, Startable
                   response.getHttpHeaders().putSingle(ExtHttpHeaders.JAXRS_BODY_PROVIDED, jaxrsHeader);
                }
             }
-
          }
-         catch (Exception e)
+         catch (WebApplicationException e)
          {
-            if (e instanceof WebApplicationException)
+            Response errorResponse = ((WebApplicationException)e).getResponse();
+            ExceptionMapper excmap = context.getProviders().getExceptionMapper(WebApplicationException.class);
+            int errorStatus = errorResponse.getStatus();
+            // should be some of 4xx status
+            if (errorStatus < 500)
             {
-
-               Response errorResponse = ((WebApplicationException)e).getResponse();
-               ExceptionMapper excmap = ProviderBinder.getInstance().getExceptionMapper(WebApplicationException.class);
-
-               int errorStatus = errorResponse.getStatus();
-               // should be some of 4xx status
-               if (errorStatus < 500)
+               // Warn about error in debug mode only.
+               if (LOG.isDebugEnabled() && e.getCause() != null)
                {
-                  // Warn about error in debug mode only.
-                  if (LOG.isDebugEnabled() && e.getCause() != null)
-                  {
-                     LOG.warn("WebApplication exception occurs.", e.getCause());
-                  }
-               }
-               else
-               {
-                  if (e.getCause() != null)
-                  {
-                     LOG.warn("WebApplication exception occurs.", e.getCause());
-                  }
-               }
-               // -----
-               if (errorResponse.getEntity() == null)
-               {
-                  if (excmap != null)
-                  {
-                     errorResponse = excmap.toResponse(e);
-                  }
-                  else
-                  {
-                     if (e.getMessage() != null)
-                     {
-                        errorResponse = createErrorResponse(errorStatus, e.getMessage());
-                     }
-                  }
-               }
-               else
-               {
-                  if (errorResponse.getMetadata().getFirst(ExtHttpHeaders.JAXRS_BODY_PROVIDED) == null)
-                  {
-                     String jaxrsHeader = getJaxrsHeader(errorStatus);
-                     if (jaxrsHeader != null)
-                     {
-                        errorResponse.getMetadata().putSingle(ExtHttpHeaders.JAXRS_BODY_PROVIDED, jaxrsHeader);
-                     }
-                  }
-               }
-               response.setResponse(errorResponse);
-            }
-            else if (e instanceof InternalException)
-            {
-               Throwable cause = e.getCause();
-               Class causeClazz = cause.getClass();
-               ExceptionMapper excmap = ProviderBinder.getInstance().getExceptionMapper(causeClazz);
-               while (causeClazz != null && excmap == null)
-               {
-                  excmap = ProviderBinder.getInstance().getExceptionMapper(causeClazz);
-                  if (excmap == null)
-                     causeClazz = causeClazz.getSuperclass();
-               }
-               if (excmap != null)
-               {
-                  if (LOG.isDebugEnabled())
-                  {
-                     // Hide error message if exception mapper exists.
-                     LOG.warn("Internal error occurs.", cause);
-                  }
-                  response.setResponse(excmap.toResponse(e.getCause()));
-               }
-               else
-               {
-                  LOG.error("Internal error occurs.", cause);
-                  throw new UnhandledException(e.getCause());
+                  LOG.warn("WebApplication exception occurs.", e.getCause());
                }
             }
             else
             {
-               throw new UnhandledException(e);
+               if (e.getCause() != null)
+               {
+                  LOG.warn("WebApplication exception occurs.", e.getCause());
+               }
+            }
+            if (errorResponse.getEntity() == null)
+            {
+               if (excmap != null)
+               {
+                  errorResponse = excmap.toResponse(e);
+               }
+               else
+               {
+                  if (e.getMessage() != null)
+                  {
+                     errorResponse = createErrorResponse(errorStatus, e.getMessage());
+                  }
+               }
+            }
+            else
+            {
+               if (errorResponse.getMetadata().getFirst(ExtHttpHeaders.JAXRS_BODY_PROVIDED) == null)
+               {
+                  String jaxrsHeader = getJaxrsHeader(errorStatus);
+                  if (jaxrsHeader != null)
+                  {
+                     errorResponse.getMetadata().putSingle(ExtHttpHeaders.JAXRS_BODY_PROVIDED, jaxrsHeader);
+                  }
+               }
+            }
+            response.setResponse(errorResponse);
+         }
+         catch (InternalException e)
+         {
+            Throwable cause = e.getCause();
+            Class causeClazz = cause.getClass();
+            ExceptionMapper excmap = context.getProviders().getExceptionMapper(causeClazz);
+            while (causeClazz != null && excmap == null)
+            {
+               excmap = context.getProviders().getExceptionMapper(causeClazz);
+               if (excmap == null)
+               {
+                  causeClazz = causeClazz.getSuperclass();
+               }
+            }
+            if (excmap != null)
+            {
+               if (LOG.isDebugEnabled())
+               {
+                  // Hide error message if exception mapper exists.
+                  LOG.warn("Internal error occurs.", cause);
+               }
+               response.setResponse(excmap.toResponse(e.getCause()));
+            }
+            else
+            {
+               LOG.error("Internal error occurs.", cause);
+               throw new UnhandledException(e.getCause());
             }
          }
 
-         for (ObjectFactory<FilterDescriptor> factory : ProviderBinder.getInstance().getResponseFilters(
-            context.getPath()))
+         // Apply default filters only.
+         for (ObjectFactory<FilterDescriptor> factory : defaultProviders.getResponseFilters(context.getPath()))
          {
             ResponseFilter f = (ResponseFilter)factory.getInstance(context);
             f.doFilter(response);
          }
 
          response.writeResponse();
-
       }
       finally
       {
@@ -248,7 +250,7 @@ public final class RequestHandlerImpl implements RequestHandler, Startable
 
    /**
     * Create error response with specified status and body message.
-    *  
+    * 
     * @param status response status
     * @param message response message
     * @return response
@@ -343,7 +345,7 @@ public final class RequestHandlerImpl implements RequestHandler, Startable
       String tmpDirName = properties.get(WS_RS_TMP_DIR);
       if (tmpDirName == null)
       {
-         tmpDir = new File(System.getProperty("java.io.tmpdir") + File.separator + "ws_jaxrs");
+         tmpDir = new File(PrivilegedSystemHelper.getProperty("java.io.tmpdir") + File.separator + "ws_jaxrs");
          properties.put(WS_RS_TMP_DIR, tmpDir.getPath());
       }
       else
@@ -351,23 +353,33 @@ public final class RequestHandlerImpl implements RequestHandler, Startable
          tmpDir = new File(tmpDirName);
       }
 
-      if (!tmpDir.exists())
-         tmpDir.mkdirs();
+      if (!PrivilegedFileHelper.exists(tmpDir))
+      {
+         PrivilegedFileHelper.mkdirs(tmpDir);
+      }
 
       // Register Shutdown Hook for cleaning temporary files.
-      Runtime.getRuntime().addShutdownHook(new Thread()
-      {
-         public void run()
+      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>() {
+         public Void run()
          {
-            File[] files = tmpDir.listFiles();
-            for (File file : files)
-            {
-               if (file.exists())
-                  file.delete();
-            }
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+               @Override
+               public void run()
+               {
+                  File[] files = PrivilegedFileHelper.listFiles(tmpDir);
+                  for (File file : files)
+                  {
+                     if (PrivilegedFileHelper.exists(file))
+                     {
+                        PrivilegedFileHelper.delete(file);
+                     }
+                  }
+               }
+            });
+
+            return null;
          }
       });
-
    }
 
    /**
@@ -375,7 +387,7 @@ public final class RequestHandlerImpl implements RequestHandler, Startable
     * 
     * @param plugin See {@link ComponentPlugin}
     */
-   @SuppressWarnings("unchecked")
+   @SuppressWarnings({"rawtypes"})
    public void addPlugin(ComponentPlugin plugin)
    {
       // NOTE!!! ProviderBinder should be already initialized by ResourceBinder
@@ -407,6 +419,13 @@ public final class RequestHandlerImpl implements RequestHandler, Startable
          Set<Class<? extends ResponseFilter>> filters = ((ResponseFilterComponentPlugin)plugin).getFilters();
          for (Class<? extends ResponseFilter> filter : filters)
             providers.addResponseFilter(filter);
+      }
+      else if (ExceptionMapperComponentPlugin.class.isAssignableFrom(plugin.getClass()))
+      {
+         Set<Class<? extends ExceptionMapper<?>>> emaps =
+            ((ExceptionMapperComponentPlugin)plugin).getExceptionMappers();
+         for (Class<? extends ExceptionMapper<?>> mapper : emaps)
+            providers.addExceptionMapper(mapper);
       }
    }
 
