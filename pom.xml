@@ -46,6 +46,9 @@
       <version.assembly.plugin>2.2.1</version.assembly.plugin>
       <org.exoplatform.kernel.version>2.2.13-GA-SNAPSHOT</org.exoplatform.kernel.version>
       <org.exoplatform.core.version>2.3.13-GA-SNAPSHOT</org.exoplatform.core.version>
+
+      <version.release.plugin>2.2.1</version.release.plugin>
+      <version.buildnumber.plugin>1.0</version.buildnumber.plugin>
    </properties>
 
    <modules>
