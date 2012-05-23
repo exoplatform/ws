@@ -36,7 +36,7 @@
 
    <scm>
       <connection>scm:git:git://github.com/exoplatform/ws.git</connection>
-      <developerConnection>scm:git:git@github.com/exoplatform/ws.git</developerConnection>
+      <developerConnection>scm:git:git@github.com:exoplatform/ws.git</developerConnection>
       <url>http://fisheye.jboss.org/browse/exo-jcr/ws</url>
    </scm>
 
@@ -44,8 +44,8 @@
       <exo.product.name>exo-ws</exo.product.name>
       <exo.product.specification>2.1</exo.product.specification>
       <version.assembly.plugin>2.2.1</version.assembly.plugin>
-      <org.exoplatform.kernel.version>2.2.13-GA-SNAPSHOT</org.exoplatform.kernel.version>
-      <org.exoplatform.core.version>2.3.13-GA-SNAPSHOT</org.exoplatform.core.version>
+      <org.exoplatform.kernel.version>2.2.13-GA</org.exoplatform.kernel.version>
+      <org.exoplatform.core.version>2.3.13-GA</org.exoplatform.core.version>
 
       <version.release.plugin>2.2.1</version.release.plugin>
       <version.buildnumber.plugin>1.0</version.buildnumber.plugin>
