@@ -133,10 +133,11 @@ public final class RequestHandlerImpl implements RequestHandler, Startable
    @SuppressWarnings({"unchecked", "rawtypes"})
    public void handleRequest(GenericContainerRequest request, GenericContainerResponse response) throws Exception
    {
+      ApplicationContextImpl context = null;
       try
       {
          ProviderBinder defaultProviders = ProviderBinder.getInstance();
-         ApplicationContextImpl context =
+         context =
             new ApplicationContextImpl(request, response, defaultProviders, dependencySupplier);
          context.getProperties().putAll(properties);
          ApplicationContextImpl.setCurrent(context);
@@ -215,18 +216,6 @@ public final class RequestHandlerImpl implements RequestHandler, Startable
             Throwable cause = e.getCause();
             handleException(response, context, cause);
          }
-         finally
-         {
-            Map<Object, Throwable> results = RequestLifeCycle.end();
-            for (Throwable cause : results.values())
-            {
-               if (cause != null)
-               {
-                  handleException(response, context, cause);
-                  break;
-               }
-            }
-         }
 
          // Apply default filters only.
          for (ObjectFactory<FilterDescriptor> factory : defaultProviders.getResponseFilters(context.getPath()))
@@ -239,6 +228,14 @@ public final class RequestHandlerImpl implements RequestHandler, Startable
       }
       finally
       {
+         Map<Object, Throwable> results = RequestLifeCycle.end();
+         for (Throwable c : results.values()) {
+            if (c != null)
+            {
+                handleException(response, context, c);
+                break;
+            }
+         }
          // reset application context
          ApplicationContextImpl.setCurrent(null);
       }
