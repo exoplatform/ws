@@ -69,7 +69,7 @@ import javax.ws.rs.ext.MessageBodyWriter;
 
 /**
  * Lookup resource which can serve request.
- * 
+ *
  * @author <a href="mailto:andrew00x@gmail.com">Andrey Parfonov</a>
  * @version $Id: $
  */
@@ -457,7 +457,7 @@ public class RequestDispatcher
 
    /**
     * Dispatch {@link ContainerRequest} to resource which can serve request.
-    * 
+    *
     * @param request See {@link GenericContainerRequest}
     * @param response See {@link GenericContainerResponse}
     */
@@ -519,7 +519,7 @@ public class RequestDispatcher
    /**
     * Get last element from path parameters. This element will be used as
     * request path for child resources.
-    * 
+    *
     * @param parameterValues See
     *           {@link ApplicationContextImpl#getParameterValues()}
     * @return last element from given list or empty string if last element is
@@ -534,7 +534,7 @@ public class RequestDispatcher
    /**
     * Process resource methods, sub-resource methods and sub-resource locators
     * to find the best one for serve request.
-    * 
+    *
     * @param request See {@link GenericContainerRequest}
     * @param response See {@link GenericContainerResponse}
     * @param context See {@link ApplicationContextImpl}
@@ -614,7 +614,7 @@ public class RequestDispatcher
 
    /**
     * Invoke resource methods.
-    * 
+    *
     * @param rmd See {@link ResourceMethodDescriptor}
     * @param resource instance of resource class
     * @param context See {@link ApplicationContextImpl}
@@ -635,7 +635,7 @@ public class RequestDispatcher
 
    /**
     * Invoke sub-resource methods.
-    * 
+    *
     * @param requestPath request path
     * @param srmd See {@link SubResourceMethodDescriptor}
     * @param resource instance of resource class
@@ -662,7 +662,7 @@ public class RequestDispatcher
 
    /**
     * Invoke sub-resource locators.
-    * 
+    *
     * @param requestPath request path
     * @param srld See {@link SubResourceLocatorDescriptor}
     * @param resource instance of resource class
@@ -705,7 +705,7 @@ public class RequestDispatcher
     * SubResourceLocatorDescriptor has higher priority. And finally if zero was
     * returned then UriPattern is equals, in this case
     * SubResourceMethodDescriptor must be selected.
-    * 
+    *
     * @param srmd See {@link SubResourceMethodDescriptor}
     * @param srld See {@link SubResourceLocatorDescriptor}
     * @return result of comparison sub-resources
@@ -724,7 +724,7 @@ public class RequestDispatcher
    /**
     * Process result of invoked method, and set {@link Response} parameters
     * dependent of returned object.
-    * 
+    *
     * @param o result of invoked method
     * @param returnType type of returned object
     * @param request See {@link GenericContainerRequest}
@@ -744,7 +744,7 @@ public class RequestDispatcher
       {
          response.setResponse(Response.noContent().build());
       }
-      else if (Response.class.isAssignableFrom(returnType))
+      else if (Response.class.isAssignableFrom(returnType) || o instanceof Response)
       {
          Response r = (Response)o;
          // If content-type is not set then add it
@@ -766,7 +766,7 @@ public class RequestDispatcher
 
    /**
     * Process resource methods.
-    * 
+    *
     * @param <T> ResourceMethodDescriptor extension
     * @param rmm See {@link ResourceMethodMap}
     * @param request See {@link GenericContainerRequest}
@@ -854,7 +854,7 @@ public class RequestDispatcher
 
    /**
     * Process sub-resource methods.
-    * 
+    *
     * @param srmm See {@link SubResourceLocatorMap}
     * @param requestedPath part of requested path
     * @param request See {@link GenericContainerRequest}
@@ -911,7 +911,7 @@ public class RequestDispatcher
 
    /**
     * Process sub-resource locators.
-    * 
+    *
     * @param srlm See {@link SubResourceLocatorMap}
     * @param requestedPath part of requested path
     * @param capturingValues the list for keeping template values
@@ -934,7 +934,7 @@ public class RequestDispatcher
 
    /**
     * Get root resource.
-    * 
+    *
     * @param parameterValues is taken from context
     * @param requestPath is taken from context
     * @return root resource
